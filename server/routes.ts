@@ -194,6 +194,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Subscription management endpoints
+  app.post('/api/subscription/upgrade', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { plan } = req.body;
+      
+      // For now, just update the user's plan (would integrate with Stripe)
+      await storage.updateUserSubscription(userId, plan);
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully upgraded to ${plan} plan`,
+        requiresPayment: plan !== "free"
+      });
+    } catch (error) {
+      console.error("Error upgrading subscription:", error);
+      res.status(500).json({ message: "Failed to upgrade subscription" });
+    }
+  });
+
+  app.post('/api/subscription/update', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { companies, email, phoneNumber, emailNotifications, smsNotifications } = req.body;
+      
+      // Update user profile
+      await storage.updateUserProfile(userId, {
+        email,
+        phoneNumber,
+        emailNotifications,
+        smsNotifications,
+      });
+      
+      // Update company subscriptions
+      await storage.updateUserCompanySubscriptions(userId, companies);
+      
+      res.json({ success: true, message: "Subscription updated successfully" });
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      res.status(500).json({ message: "Failed to update subscription" });
+    }
+  });
+
+  app.get('/api/user/subscriptions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const subscriptions = await storage.getUserCompanySubscriptions(userId);
+      res.json(subscriptions);
+    } catch (error) {
+      console.error("Error fetching user subscriptions:", error);
+      res.status(500).json({ message: "Failed to fetch subscriptions" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -9,12 +9,15 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Profile from "@/pages/profile";
 import Analytics from "@/pages/analytics";
+import Pricing from "@/pages/pricing";
+import Subscription from "@/pages/subscription";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
+      <Route path="/pricing" component={Pricing} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
@@ -22,6 +25,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/subscription" component={Subscription} />
         </>
       )}
       <Route component={NotFound} />

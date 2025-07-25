@@ -36,6 +36,11 @@ export const users = pgTable("users", {
   jobTitle: varchar("job_title"),
   emailNotifications: boolean("email_notifications").default(true),
   smsNotifications: boolean("sms_notifications").default(false),
+  subscriptionPlan: varchar("subscription_plan").default("free"), // free, pro, premium
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  subscriptionStatus: varchar("subscription_status").default("inactive"), // inactive, active, canceled, past_due
+  subscriptionEndDate: timestamp("subscription_end_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -89,6 +94,14 @@ export const companyActivities = pgTable("company_activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User company subscriptions table for paid users
+export const userCompanySubscriptions = pgTable("user_company_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  companyId: varchar("company_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   selectedCompany: one(companies, {
@@ -96,6 +109,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [companies.id],
   }),
   notifications: many(notifications),
+  companySubscriptions: many(userCompanySubscriptions),
 }));
 
 export const companiesRelations = relations(companies, ({ many }) => ({
@@ -120,6 +134,17 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 export const companyActivitiesRelations = relations(companyActivities, ({ one }) => ({
   company: one(companies, {
     fields: [companyActivities.companyId],
+    references: [companies.id],
+  }),
+}));
+
+export const userCompanySubscriptionsRelations = relations(userCompanySubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [userCompanySubscriptions.userId],
+    references: [users.id],
+  }),
+  company: one(companies, {
+    fields: [userCompanySubscriptions.companyId],
     references: [companies.id],
   }),
 }));
@@ -187,3 +212,5 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type CompanyActivity = typeof companyActivities.$inferSelect;
 export type InsertCompanyActivity = z.infer<typeof insertCompanyActivitySchema>;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
+export type UserCompanySubscription = typeof userCompanySubscriptions.$inferSelect;
+export type InsertUserCompanySubscription = typeof userCompanySubscriptions.$inferInsert;

@@ -18,6 +18,12 @@ Preferred communication style: Simple, everyday language.
 ✓ Implemented charts and data visualization using Recharts library
 ✓ Added navigation between Dashboard, Analytics, and Profile pages
 ✓ Created sample data seed for testing with major tech companies and layoff events
+✓ Implemented pricing table with Free, Pro, and Premium subscription plans
+✓ Added subscription management system where users can select companies to track
+✓ Created dedicated pricing and subscription pages with modern UI design
+✓ Enhanced database schema with user subscription fields and company subscription tracking
+✓ Added API endpoints for subscription upgrades and company selection management
+✓ Implemented tiered feature access (Free: 1 company, Pro: 5 companies, Premium: unlimited)
 
 ## System Architecture
 

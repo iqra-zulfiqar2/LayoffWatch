@@ -4,6 +4,7 @@ import {
   layoffEvents,
   notifications,
   companyActivities,
+  userCompanySubscriptions,
   type User,
   type UpsertUser,
   type Company,
@@ -56,6 +57,11 @@ export interface IStorage {
   // Additional methods
   getRecentLayoffs(): Promise<any[]>;
   getAllCompanies(): Promise<Company[]>;
+  
+  // Subscription methods
+  updateUserSubscription(userId: string, plan: string): Promise<void>;
+  updateUserCompanySubscriptions(userId: string, companyIds: string[]): Promise<void>;
+  getUserCompanySubscriptions(userId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -315,6 +321,50 @@ export class DatabaseStorage implements IStorage {
       .from(companies)
       .orderBy(companies.name);
     return companyList;
+  }
+
+  // Subscription methods
+  async updateUserSubscription(userId: string, plan: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        subscriptionPlan: plan,
+        subscriptionStatus: plan === "free" ? "inactive" : "active",
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async updateUserCompanySubscriptions(userId: string, companyIds: string[]): Promise<void> {
+    // First, delete existing subscriptions
+    await db.delete(userCompanySubscriptions).where(eq(userCompanySubscriptions.userId, userId));
+    
+    // Then insert new subscriptions
+    if (companyIds.length > 0) {
+      const subscriptions = companyIds.map(companyId => ({
+        userId,
+        companyId,
+      }));
+      await db.insert(userCompanySubscriptions).values(subscriptions);
+    }
+  }
+
+  async getUserCompanySubscriptions(userId: string): Promise<any[]> {
+    const subscriptions = await db
+      .select({
+        id: userCompanySubscriptions.id,
+        userId: userCompanySubscriptions.userId,
+        companyId: userCompanySubscriptions.companyId,
+        companyName: companies.name,
+        companyIndustry: companies.industry,
+        companyStatus: companies.status,
+        createdAt: userCompanySubscriptions.createdAt,
+      })
+      .from(userCompanySubscriptions)
+      .innerJoin(companies, eq(userCompanySubscriptions.companyId, companies.id))
+      .where(eq(userCompanySubscriptions.userId, userId));
+    
+    return subscriptions;
   }
 }
 
