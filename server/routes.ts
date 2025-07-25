@@ -79,8 +79,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard stats
-  app.get('/api/dashboard/stats', isAuthenticated, async (req, res) => {
+  // Dashboard stats - public access for homepage
+  app.get('/api/dashboard/stats', async (req, res) => {
     try {
       const stats = await storage.getCompaniesWithLayoffStats();
       res.json(stats);
@@ -150,8 +150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Historical layoff data
-  app.get('/api/analytics/historical', isAuthenticated, async (req, res) => {
+  // Historical layoff data - public access for homepage
+  app.get('/api/analytics/historical', async (req, res) => {
     try {
       const historicalData = await storage.getHistoricalLayoffData();
       res.json(historicalData);
@@ -161,8 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Layoff trends
-  app.get('/api/analytics/trends', isAuthenticated, async (req, res) => {
+  // Layoff trends - public access for homepage  
+  app.get('/api/analytics/trends', async (req, res) => {
     try {
       const timeframe = (req.query.timeframe as 'month' | 'quarter' | 'year') || 'month';
       const trends = await storage.getLayoffTrends(timeframe);
@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Starting data integration...");
       await dataIntegrator.integrateAllData();
       res.json({ message: "Data integration completed successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Data integration failed:", error);
       res.status(500).json({ message: "Data integration failed", error: error?.message });
     }

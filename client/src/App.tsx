@@ -20,18 +20,13 @@ function Router() {
   return (
     <Switch>
       <Route path="/pricing" component={Pricing} />
-      <Route path="/enhanced" component={EnhancedHomepage} />
       <Route path="/login" component={AuthLanding} />
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={AuthLanding} />
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/subscription" component={Subscription} />
-        </>
-      )}
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/subscription" component={Subscription} />
+      {/* Main homepage - accessible to all users */}
+      <Route path="/" component={EnhancedHomepage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -58,7 +58,12 @@ function Header() {
             <h1 className="text-2xl font-bold text-gray-900">LayoffTracker</h1>
             <nav className="hidden md:flex items-center space-x-6">
               <a href="/" className="text-blue-600 font-medium">Home</a>
-              <a href="/analytics" className="text-gray-600 hover:text-gray-900">Analytics</a>
+              {user ? (
+                <>
+                  <a href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</a>
+                  <a href="/analytics" className="text-gray-600 hover:text-gray-900">Analytics</a>
+                </>
+              ) : null}
               <a href="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
             </nav>
           </div>
@@ -69,9 +74,12 @@ function Header() {
                 <a href="/api/logout" className="text-gray-600 hover:text-gray-900">Sign Out</a>
               </>
             ) : (
-              <LoginDialog>
-                <Button>Sign In</Button>
-              </LoginDialog>
+              <>
+                <a href="/login" className="text-gray-600 hover:text-gray-900">Sign In</a>
+                <LoginDialog>
+                  <Button>Get Started</Button>
+                </LoginDialog>
+              </>
             )}
           </div>
         </div>
@@ -81,24 +89,25 @@ function Header() {
 }
 
 export default function EnhancedHomepage() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterIndustry, setFilterIndustry] = useState("all");
   const [filterState, setFilterState] = useState("all");
   const [selectedTab, setSelectedTab] = useState("recent");
 
-  // Fetch recent layoffs data
+  // Fetch recent layoffs data - available to all users
   const { data: recentLayoffs, isLoading: layoffsLoading } = useQuery({
     queryKey: ["/api/layoffs/recent"],
     retry: false,
   });
 
-  // Fetch dashboard stats
+  // Fetch dashboard stats - available to all users  
   const { data: stats } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     retry: false,
   });
 
-  // Fetch companies data
+  // Fetch companies data - available to all users
   const { data: companies } = useQuery({
     queryKey: ["/api/companies"],
     retry: false,
@@ -355,7 +364,7 @@ export default function EnhancedHomepage() {
             </h1>
             <p className="text-xl text-blue-100 mb-6 max-w-3xl mx-auto">
               Comprehensive tracking of layoffs from major sources including layoffs.fyi, WARN Act data, and government reports. 
-              Stay informed with real-time updates across all industries.
+              Stay informed with real-time updates across all industries. {!user ? "Sign up for personalized tracking and notifications." : ""}
             </p>
           </div>
 
@@ -392,15 +401,33 @@ export default function EnhancedHomepage() {
             <div>
               <h2 className="text-2xl font-bold mb-2">🏢 Company Layoffs Database</h2>
               <p className="text-blue-100">Browse comprehensive layoff data with company logos, financials, headcount, and real-time updates from major corporations like Meta, Amazon, Microsoft, and more.</p>
+              {!user && (
+                <p className="text-blue-200 text-sm mt-2">
+                  💡 Sign up for personalized tracking, notifications, and advanced analytics
+                </p>
+              )}
             </div>
-            <Button 
-              size="lg"
-              className="bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
-              onClick={() => setSelectedTab("companies")}
-            >
-              <Building className="w-5 h-5 mr-2" />
-              View Companies
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button 
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
+                onClick={() => setSelectedTab("companies")}
+              >
+                <Building className="w-5 h-5 mr-2" />
+                View Companies
+              </Button>
+              {!user && (
+                <LoginDialog>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
+                  >
+                    Get Started Free
+                  </Button>
+                </LoginDialog>
+              )}
+            </div>
           </div>
         </div>
 
