@@ -9,35 +9,54 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { updateUserProfileSchema, type UpdateUserProfile } from "@shared/schema";
-import { User, Settings, Bell, Smartphone, Mail } from "lucide-react";
-import Header from "@/components/Header";
+import { User, Bell, Smartphone, Mail } from "lucide-react";
+
+function Header() {
+  const { user } = useAuth();
+  
+  return (
+    <header className="bg-white shadow-sm border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          <div className="flex items-center">
+            <h1 className="text-xl font-bold text-gray-900">LayoffTracker</h1>
+          </div>
+          <nav className="flex items-center space-x-6">
+            <a href="/" className="text-gray-600 hover:text-gray-900">Dashboard</a>
+            <a href="/analytics" className="text-gray-600 hover:text-gray-900">Analytics</a>
+            <a href="/profile" className="text-gray-600 hover:text-gray-900">Profile</a>
+            {user ? (
+              <a href="/api/logout" className="text-gray-600 hover:text-gray-900">Sign Out</a>
+            ) : (
+              <a href="/api/login" className="text-gray-600 hover:text-gray-900">Sign In</a>
+            )}
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+}
 
 export default function Profile() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<UpdateUserProfile>({
-    resolver: zodResolver(updateUserProfileSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phoneNumber: "",
-      jobTitle: "",
-      emailNotifications: true,
-      smsNotifications: false,
-    },
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    jobTitle: "",
+    emailNotifications: true,
+    smsNotifications: false,
   });
 
   // Update form when user data loads
   useEffect(() => {
     if (user) {
-      form.reset({
+      setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
@@ -47,11 +66,11 @@ export default function Profile() {
         smsNotifications: user.smsNotifications ?? false,
       });
     }
-  }, [user, form]);
+  }, [user]);
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: UpdateUserProfile) => {
+    mutationFn: async (data: typeof formData) => {
       await apiRequest("PUT", "/api/user/profile", data);
     },
     onSuccess: () => {
@@ -81,188 +100,135 @@ export default function Profile() {
     },
   });
 
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [user, isLoading, toast]);
-
-  const onSubmit = (data: UpdateUserProfile) => {
-    updateProfileMutation.mutate(data);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate(formData);
   };
 
-  if (isLoading || !user) {
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Please log in to view your profile</h1>
+            <Button asChild>
+              <a href="/api/login">Sign In</a>
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">User Profile</h2>
-          <p className="text-slate-600">
-            Manage your personal information and notification preferences
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
+            <p className="text-gray-600">
+              Manage your account information and notification preferences
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Picture & Basic Info */}
-          <div className="lg:col-span-1">
+          <div className="space-y-6">
+            {/* Profile Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  Profile Photo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="mb-4">
-                  {user.profileImageUrl ? (
-                    <img 
-                      src={user.profileImageUrl} 
-                      alt="Profile" 
-                      className="w-24 h-24 rounded-full mx-auto object-cover"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center mx-auto">
-                      <User className="w-12 h-12 text-slate-400" />
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                  {user.firstName && user.lastName 
-                    ? `${user.firstName} ${user.lastName}`
-                    : user.email
-                  }
-                </h3>
-                <p className="text-sm text-slate-500 mb-4">
-                  {user.jobTitle || "No job title set"}
-                </p>
-                <Button variant="outline" size="sm" disabled>
-                  Change Photo (Coming Soon)
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Profile Form */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
                   Personal Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>First Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter your first name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter your last name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        placeholder="Enter your first name"
                       />
                     </div>
 
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="Enter your email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        placeholder="Enter your last name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="Enter your email"
                     />
+                  </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+1 (555) 123-4567" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      value={formData.phoneNumber}
+                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
 
-                      <FormField
-                        control={form.control}
-                        name="jobTitle"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Job Title</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. Software Engineer" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="jobTitle">Job Title</Label>
+                    <Input
+                      id="jobTitle"
+                      value={formData.jobTitle}
+                      onChange={(e) => handleInputChange('jobTitle', e.target.value)}
+                      placeholder="Enter your job title"
+                    />
+                  </div>
 
-                    <Button 
-                      type="submit" 
-                      disabled={updateProfileMutation.isPending}
-                      className="w-full md:w-auto"
-                    >
-                      {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-                    </Button>
-                  </form>
-                </Form>
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={updateProfileMutation.isPending}
+                  >
+                    {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
 
-            {/* Notification Preferences */}
+            {/* Notification Settings */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -272,67 +238,36 @@ export default function Profile() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-slate-500" />
-                    <div>
-                      <Label htmlFor="email-notifications" className="text-sm font-medium">
-                        Email Notifications
-                      </Label>
-                      <p className="text-xs text-slate-500">
-                        Get notified about layoffs at your selected company
-                      </p>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-500" />
+                      <Label className="text-base font-medium">Email Notifications</Label>
                     </div>
+                    <p className="text-sm text-gray-500">
+                      Receive email alerts when layoffs occur at your tracked companies
+                    </p>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name="emailNotifications"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Switch
-                            id="email-notifications"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
+                  <Switch
+                    checked={formData.emailNotifications}
+                    onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Smartphone className="w-5 h-5 text-slate-500" />
-                    <div>
-                      <Label htmlFor="sms-notifications" className="text-sm font-medium">
-                        SMS Notifications
-                      </Label>
-                      <p className="text-xs text-slate-500">
-                        Get text messages for urgent layoff alerts
-                      </p>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-4 h-4 text-gray-500" />
+                      <Label className="text-base font-medium">SMS Notifications</Label>
                     </div>
+                    <p className="text-sm text-gray-500">
+                      Get text message alerts for critical layoff events (requires phone number)
+                    </p>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name="smsNotifications"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Switch
-                            id="sms-notifications"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={!form.watch("phoneNumber")}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
+                  <Switch
+                    checked={formData.smsNotifications}
+                    onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
+                    disabled={!formData.phoneNumber}
                   />
-                </div>
-
-                <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg">
-                  <strong>Note:</strong> SMS notifications require a valid phone number. 
-                  Make sure to add your phone number above to enable SMS alerts.
                 </div>
               </CardContent>
             </Card>

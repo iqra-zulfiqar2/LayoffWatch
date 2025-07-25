@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { dataIntegrator } from "./data-integrator";
 import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -246,6 +247,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching user subscriptions:", error);
       res.status(500).json({ message: "Failed to fetch subscriptions" });
     }
+  });
+
+  // Data integration endpoint
+  app.post("/api/integrate-data", isAuthenticated, async (req, res) => {
+    try {
+      console.log("Starting data integration...");
+      await dataIntegrator.integrateAllData();
+      res.json({ message: "Data integration completed successfully" });
+    } catch (error) {
+      console.error("Data integration failed:", error);
+      res.status(500).json({ message: "Data integration failed", error: error?.message });
+    }
+  });
+
+  // Get data sources info
+  app.get("/api/data-sources", async (req, res) => {
+    res.json({
+      sources: [
+        {
+          name: "layoffs.fyi",
+          description: "Tech industry layoffs tracker with 759K+ employees from 2,813 companies since 2020",
+          coverage: "Technology sector focused",
+          dataPoints: "759,382 employees affected",
+          lastUpdate: "Real-time"
+        },
+        {
+          name: "warntracker.com", 
+          description: "WARN Act layoff notices tracker with comprehensive coverage since 1988",
+          coverage: "All industries, all states",
+          dataPoints: "7.1M+ employees, 36,237 companies",
+          lastUpdate: "Government filings"
+        },
+        {
+          name: "layoffdata.com",
+          description: "Government WARN Act data aggregator with detailed layoff information",
+          coverage: "49 states, all industries",
+          dataPoints: "78K+ layoff notices, 8.5M+ workers",
+          lastUpdate: "State government data"
+        }
+      ],
+      totalCoverage: {
+        employees: "15.5M+",
+        companies: "42K+",
+        timespan: "Since 1988"
+      }
+    });
   });
 
   const httpServer = createServer(app);

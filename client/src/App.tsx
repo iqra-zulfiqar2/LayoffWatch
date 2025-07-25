@@ -11,6 +11,7 @@ import Profile from "@/pages/profile";
 import Analytics from "@/pages/analytics";
 import Pricing from "@/pages/pricing";
 import Subscription from "@/pages/subscription";
+import EnhancedHomepage from "@/pages/enhanced-homepage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -18,6 +19,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/pricing" component={Pricing} />
+      <Route path="/enhanced" component={EnhancedHomepage} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

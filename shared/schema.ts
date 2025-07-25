@@ -49,9 +49,13 @@ export const companies = pgTable("companies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   industry: varchar("industry").notNull(),
+  location: varchar("location"), // Main location
+  description: text("description"),
+  website: varchar("website"),
+  size: varchar("size"), // Employee count range or "Unknown"
   employeeCount: varchar("employee_count"),
   logoUrl: varchar("logo_url"),
-  headquarters: varchar("headquarters"), // City, State
+  headquarters: varchar("headquarters"), // City, State  
   state: varchar("state"),
   country: varchar("country").default("United States"),
   latitude: varchar("latitude"),
@@ -70,8 +74,33 @@ export const layoffEvents = pgTable("layoff_events", {
   percentageOfWorkforce: varchar("percentage_of_workforce"),
   affectedJobTitles: text("affected_job_titles").array(),
   eventDate: timestamp("event_date").notNull(),
+  noticeDate: timestamp("notice_date"), // WARN Act notice date
+  effectiveDate: timestamp("effective_date"), // When layoffs actually take effect
   source: varchar("source"),
-  severity: varchar("severity").default("medium"), // low, medium, high
+  sourceType: varchar("source_type").notNull().default("manual"), // "layoffs_fyi", "layoffdata", "warntracker", "manual"
+  externalId: varchar("external_id"), // ID from external source
+  
+  // Enhanced location and job data
+  city: varchar("city"),
+  state: varchar("state"),
+  country: varchar("country").default("United States"),
+  
+  // WARN Act specific fields
+  warnNoticeRequired: boolean("warn_notice_required").default(false),
+  warnNoticeDate: timestamp("warn_notice_date"),
+  plantClosure: boolean("plant_closure").default(false),
+  
+  // Company financial data (from layoffs.fyi)
+  fundingStage: varchar("funding_stage"), // "Seed", "Series A", "IPO", etc.
+  companyValuation: varchar("company_valuation"), // Store as string to avoid bigint issues
+  industry: varchar("industry"),
+  
+  // Government layoff specific fields
+  isGovernmentLayoff: boolean("is_government_layoff").default(false),
+  governmentDepartment: varchar("government_department"),
+  layoffReason: varchar("layoff_reason"), // "DOGE Layoff", "Restructuring", etc.
+  
+  severity: varchar("severity").default("medium"), // low, medium, high, critical
   createdAt: timestamp("created_at").defaultNow(),
 });
 
