@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginDialog } from "@/components/login-dialog";
+import { CompanyTable } from "@/components/company-table";
 import { 
   TrendingDown, 
   Building, 
@@ -240,7 +241,7 @@ export default function EnhancedHomepage() {
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="recent">Recent Layoffs</TabsTrigger>
-            <TabsTrigger value="companies">Companies</TabsTrigger>
+            <TabsTrigger value="companies">Company Database</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="map">Geographic</TabsTrigger>
           </TabsList>
@@ -348,33 +349,7 @@ export default function EnhancedHomepage() {
 
           {/* Companies Tab */}
           <TabsContent value="companies">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5" />
-                  Companies with Layoffs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.isArray(companies) ? companies.slice(0, 12).map((company: Company) => (
-                    <div key={company.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold">{company.name}</h3>
-                        <Badge variant={company.status === 'active_layoffs' ? 'destructive' : 'secondary'}>
-                          {company.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{company.industry}</p>
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <span>Updated {formatDate(company.lastUpdate)}</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  )) : []}
-                </div>
-              </CardContent>
-            </Card>
+            <CompanyTable />
           </TabsContent>
 
           {/* Trends Tab */}
