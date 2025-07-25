@@ -14,15 +14,17 @@ import {
   type InsertNotification,
   type CompanyActivity,
   type InsertCompanyActivity,
+  type UpdateUserProfile,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, ilike, desc, and, isNull } from "drizzle-orm";
+import { eq, ilike, desc, and, isNull, gte, lte, sql, count } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserSelectedCompany(userId: string, companyId: string): Promise<void>;
+  updateUserProfile(userId: string, profile: UpdateUserProfile): Promise<User>;
   
   // Company operations
   searchCompanies(query: string): Promise<Company[]>;
@@ -34,6 +36,13 @@ export interface IStorage {
   // Layoff events
   getLayoffEventsByCompany(companyId: string): Promise<LayoffEvent[]>;
   createLayoffEvent(event: InsertLayoffEvent): Promise<LayoffEvent>;
+  getHistoricalLayoffData(): Promise<{
+    byYear: Array<{ year: number; count: number; employees: number }>;
+    byIndustry: Array<{ industry: string; count: number; employees: number }>;
+    byState: Array<{ state: string; count: number; employees: number }>;
+    byJobTitle: Array<{ jobTitle: string; count: number }>;
+  }>;
+  getLayoffTrends(timeframe: 'month' | 'quarter' | 'year'): Promise<Array<{ period: string; count: number; employees: number }>>;
   
   // Notifications
   getUserNotifications(userId: string): Promise<Notification[]>;
@@ -72,6 +81,18 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ selectedCompanyId: companyId, updatedAt: new Date() })
       .where(eq(users.id, userId));
+  }
+
+  async updateUserProfile(userId: string, profile: UpdateUserProfile): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        ...profile,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 
   // Company operations
@@ -129,6 +150,100 @@ export class DatabaseStorage implements IStorage {
   async createLayoffEvent(event: InsertLayoffEvent): Promise<LayoffEvent> {
     const [newEvent] = await db.insert(layoffEvents).values(event).returning();
     return newEvent;
+  }
+
+  async getHistoricalLayoffData(): Promise<{
+    byYear: Array<{ year: number; count: number; employees: number }>;
+    byIndustry: Array<{ industry: string; count: number; employees: number }>;
+    byState: Array<{ state: string; count: number; employees: number }>;
+    byJobTitle: Array<{ jobTitle: string; count: number }>;
+  }> {
+    // By Year
+    const byYear = await db
+      .select({
+        year: sql<number>`EXTRACT(YEAR FROM ${layoffEvents.eventDate})`,
+        count: count(),
+        employees: sql<number>`COALESCE(SUM(${layoffEvents.affectedEmployees}), 0)`,
+      })
+      .from(layoffEvents)
+      .groupBy(sql`EXTRACT(YEAR FROM ${layoffEvents.eventDate})`)
+      .orderBy(sql`EXTRACT(YEAR FROM ${layoffEvents.eventDate}) DESC`);
+
+    // By Industry
+    const byIndustry = await db
+      .select({
+        industry: companies.industry,
+        count: count(),
+        employees: sql<number>`COALESCE(SUM(${layoffEvents.affectedEmployees}), 0)`,
+      })
+      .from(layoffEvents)
+      .innerJoin(companies, eq(layoffEvents.companyId, companies.id))
+      .groupBy(companies.industry)
+      .orderBy(desc(count()));
+
+    // By State
+    const byState = await db
+      .select({
+        state: companies.state,
+        count: count(),
+        employees: sql<number>`COALESCE(SUM(${layoffEvents.affectedEmployees}), 0)`,
+      })
+      .from(layoffEvents)
+      .innerJoin(companies, eq(layoffEvents.companyId, companies.id))
+      .where(sql`${companies.state} IS NOT NULL`)
+      .groupBy(companies.state)
+      .orderBy(desc(count()));
+
+    // By Job Title (from affected job titles array)
+    const byJobTitle = await db
+      .select({
+        jobTitle: sql<string>`unnest(${layoffEvents.affectedJobTitles})`,
+        count: count(),
+      })
+      .from(layoffEvents)
+      .where(sql`${layoffEvents.affectedJobTitles} IS NOT NULL`)
+      .groupBy(sql`unnest(${layoffEvents.affectedJobTitles})`)
+      .orderBy(desc(count()));
+
+    return {
+      byYear,
+      byIndustry,
+      byState: byState.filter(item => item.state),
+      byJobTitle,
+    };
+  }
+
+  async getLayoffTrends(timeframe: 'month' | 'quarter' | 'year'): Promise<Array<{ period: string; count: number; employees: number }>> {
+    let dateFormat: string;
+    let dateTrunc: string;
+
+    switch (timeframe) {
+      case 'month':
+        dateFormat = 'YYYY-MM';
+        dateTrunc = 'month';
+        break;
+      case 'quarter':
+        dateFormat = 'YYYY-Q';
+        dateTrunc = 'quarter';
+        break;
+      case 'year':
+        dateFormat = 'YYYY';
+        dateTrunc = 'year';
+        break;
+    }
+
+    const trends = await db
+      .select({
+        period: sql<string>`TO_CHAR(DATE_TRUNC('${sql.raw(dateTrunc)}', ${layoffEvents.eventDate}), '${sql.raw(dateFormat)}')`,
+        count: count(),
+        employees: sql<number>`COALESCE(SUM(${layoffEvents.affectedEmployees}), 0)`,
+      })
+      .from(layoffEvents)
+      .groupBy(sql`DATE_TRUNC('${sql.raw(dateTrunc)}', ${layoffEvents.eventDate})`)
+      .orderBy(sql`DATE_TRUNC('${sql.raw(dateTrunc)}', ${layoffEvents.eventDate}) DESC`)
+      .limit(12);
+
+    return trends;
   }
 
   // Notifications

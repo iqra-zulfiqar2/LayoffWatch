@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertCompanySchema } from "@shared/schema";
+import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -133,6 +133,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching layoff events:", error);
       res.status(500).json({ message: "Failed to fetch layoff events" });
+    }
+  });
+
+  // User profile management
+  app.put('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validated = updateUserProfileSchema.parse(req.body);
+      const user = await storage.updateUserProfile(userId, validated);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(400).json({ message: "Invalid profile data" });
+    }
+  });
+
+  // Historical layoff data
+  app.get('/api/analytics/historical', isAuthenticated, async (req, res) => {
+    try {
+      const historicalData = await storage.getHistoricalLayoffData();
+      res.json(historicalData);
+    } catch (error) {
+      console.error("Error fetching historical layoff data:", error);
+      res.status(500).json({ message: "Failed to fetch historical data" });
+    }
+  });
+
+  // Layoff trends
+  app.get('/api/analytics/trends', isAuthenticated, async (req, res) => {
+    try {
+      const timeframe = (req.query.timeframe as 'month' | 'quarter' | 'year') || 'month';
+      const trends = await storage.getLayoffTrends(timeframe);
+      res.json(trends);
+    } catch (error) {
+      console.error("Error fetching layoff trends:", error);
+      res.status(500).json({ message: "Failed to fetch trends" });
     }
   });
 

@@ -2,11 +2,22 @@
 
 ## Overview
 
-This is a full-stack web application called "LayoffTracker" that helps users monitor layoff activities at companies. The application provides real-time tracking, notifications, and analytics about company layoffs. It's built with a modern tech stack featuring React frontend, Express backend, PostgreSQL database, and Replit authentication.
+This is a full-stack web application called "LayoffTracker" that helps users monitor layoff activities at companies. The application provides real-time tracking, notifications, analytics, and user profile management. Users can select companies to track, set notification preferences (email/SMS), and view comprehensive historical layoff data across industries, states, and job titles. It's built with a modern tech stack featuring React frontend, Express backend, PostgreSQL database, and Replit authentication.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Changes (January 25, 2025)
+
+✓ Enhanced database schema with user profile fields (phone number, job title, notification preferences)
+✓ Added geographic and demographic data to companies and layoff events  
+✓ Created user profile management page with notification preferences
+✓ Built comprehensive analytics dashboard with historical layoff data visualization
+✓ Added layoff trends analysis by year, industry, state, and job titles
+✓ Implemented charts and data visualization using Recharts library
+✓ Added navigation between Dashboard, Analytics, and Profile pages
+✓ Created sample data seed for testing with major tech companies and layoff events
 
 ## System Architecture
 
@@ -36,12 +47,12 @@ The application follows a monorepo structure with clear separation between clien
 - **Middleware**: Request logging, error handling, and authentication guards
 
 ### Database Schema
-- **Users**: Store user profiles with Replit authentication data
-- **Companies**: Company information with layoff status tracking
-- **Layoff Events**: Historical layoff data linked to companies
-- **Notifications**: User notification system
-- **Company Activities**: Activity feed for company updates
-- **Sessions**: PostgreSQL-backed session storage
+- **Users**: Store user profiles with Replit authentication data, notification preferences, and selected company tracking
+- **Companies**: Company information with layoff status tracking, geographic location, and industry classification
+- **Layoff Events**: Historical layoff data with job titles, severity levels, and demographic information
+- **Notifications**: User notification system for layoff alerts
+- **Company Activities**: Activity feed for company updates and announcements
+- **Sessions**: PostgreSQL-backed session storage for authentication
 
 ### Authentication Flow
 - **OAuth Integration**: Replit OpenID Connect authentication
@@ -52,11 +63,13 @@ The application follows a monorepo structure with clear separation between clien
 ## Data Flow
 
 1. **Authentication**: Users authenticate via Replit OAuth, creating or updating user records
-2. **Company Search**: Real-time search API returns matching companies from database
-3. **Company Selection**: Users can select a company to monitor, updating their profile
-4. **Dashboard Data**: Dashboard loads company details, layoff events, and notifications
-5. **Real-time Updates**: React Query handles caching and automatic refetching of data
-6. **Notifications**: System generates notifications for layoff events and updates
+2. **Profile Management**: Users can update personal information, job titles, and notification preferences  
+3. **Company Search**: Real-time search API returns matching companies from database
+4. **Company Selection**: Users can select a company to monitor, updating their profile
+5. **Dashboard Data**: Dashboard loads company details, layoff events, and notifications
+6. **Analytics**: Historical data aggregation provides insights by year, industry, state, and job titles
+7. **Real-time Updates**: React Query handles caching and automatic refetching of data
+8. **Notifications**: System generates email/SMS notifications based on user preferences for layoff events
 
 ## External Dependencies
 

@@ -32,6 +32,10 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   selectedCompanyId: varchar("selected_company_id"),
+  phoneNumber: varchar("phone_number"),
+  jobTitle: varchar("job_title"),
+  emailNotifications: boolean("email_notifications").default(true),
+  smsNotifications: boolean("sms_notifications").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -42,6 +46,11 @@ export const companies = pgTable("companies", {
   industry: varchar("industry").notNull(),
   employeeCount: varchar("employee_count"),
   logoUrl: varchar("logo_url"),
+  headquarters: varchar("headquarters"), // City, State
+  state: varchar("state"),
+  country: varchar("country").default("United States"),
+  latitude: varchar("latitude"),
+  longitude: varchar("longitude"),
   status: varchar("status").notNull().default("safe"), // safe, monitoring, active_layoffs
   lastUpdate: timestamp("last_update").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -53,8 +62,11 @@ export const layoffEvents = pgTable("layoff_events", {
   title: varchar("title").notNull(),
   description: text("description"),
   affectedEmployees: integer("affected_employees"),
+  percentageOfWorkforce: varchar("percentage_of_workforce"),
+  affectedJobTitles: text("affected_job_titles").array(),
   eventDate: timestamp("event_date").notNull(),
   source: varchar("source"),
+  severity: varchar("severity").default("medium"), // low, medium, high
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -118,6 +130,11 @@ export const insertCompanySchema = createInsertSchema(companies).pick({
   industry: true,
   employeeCount: true,
   logoUrl: true,
+  headquarters: true,
+  state: true,
+  country: true,
+  latitude: true,
+  longitude: true,
   status: true,
 });
 
@@ -126,8 +143,11 @@ export const insertLayoffEventSchema = createInsertSchema(layoffEvents).pick({
   title: true,
   description: true,
   affectedEmployees: true,
+  percentageOfWorkforce: true,
+  affectedJobTitles: true,
   eventDate: true,
   source: true,
+  severity: true,
 });
 
 export const insertNotificationSchema = createInsertSchema(notifications).pick({
@@ -144,6 +164,17 @@ export const insertCompanyActivitySchema = createInsertSchema(companyActivities)
   activityDate: true,
 });
 
+export const updateUserProfileSchema = createInsertSchema(users).pick({
+  firstName: true,
+  lastName: true,
+  phoneNumber: true,
+  jobTitle: true,
+  emailNotifications: true,
+  smsNotifications: true,
+}).extend({
+  email: z.string().email(),
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -155,3 +186,4 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type CompanyActivity = typeof companyActivities.$inferSelect;
 export type InsertCompanyActivity = z.infer<typeof insertCompanyActivitySchema>;
+export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;

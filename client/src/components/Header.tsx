@@ -1,12 +1,18 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function Header() {
   const { user } = useAuth();
+  const [location] = useLocation();
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
+  };
+
+  const isActive = (path: string) => {
+    return location === path;
   };
 
   return (
@@ -18,15 +24,27 @@ export default function Header() {
               <h1 className="text-2xl font-bold text-slate-900">LayoffTracker</h1>
             </div>
             <nav className="hidden md:ml-8 md:flex md:space-x-8">
-              <a href="#" className="text-primary border-b-2 border-primary px-1 pb-4 text-sm font-medium">
+              <Link href="/" className={`px-1 pb-4 text-sm font-medium ${
+                isActive("/") 
+                  ? "text-primary border-b-2 border-primary" 
+                  : "text-slate-500 hover:text-slate-700"
+              }`}>
                 Dashboard
-              </a>
-              <a href="#" className="text-slate-500 hover:text-slate-700 px-1 pb-4 text-sm font-medium">
-                Companies
-              </a>
-              <a href="#" className="text-slate-500 hover:text-slate-700 px-1 pb-4 text-sm font-medium">
+              </Link>
+              <Link href="/analytics" className={`px-1 pb-4 text-sm font-medium ${
+                isActive("/analytics") 
+                  ? "text-primary border-b-2 border-primary" 
+                  : "text-slate-500 hover:text-slate-700"
+              }`}>
                 Analytics
-              </a>
+              </Link>
+              <Link href="/profile" className={`px-1 pb-4 text-sm font-medium ${
+                isActive("/profile") 
+                  ? "text-primary border-b-2 border-primary" 
+                  : "text-slate-500 hover:text-slate-700"
+              }`}>
+                Profile
+              </Link>
             </nav>
           </div>
           <div className="flex items-center space-x-4">
