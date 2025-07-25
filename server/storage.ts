@@ -52,6 +52,10 @@ export interface IStorage {
   // Company activities
   getCompanyActivities(companyId: string): Promise<CompanyActivity[]>;
   createCompanyActivity(activity: InsertCompanyActivity): Promise<CompanyActivity>;
+  
+  // Additional methods
+  getRecentLayoffs(): Promise<any[]>;
+  getAllCompanies(): Promise<Company[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -283,6 +287,34 @@ export class DatabaseStorage implements IStorage {
   async createCompanyActivity(activity: InsertCompanyActivity): Promise<CompanyActivity> {
     const [newActivity] = await db.insert(companyActivities).values(activity).returning();
     return newActivity;
+  }
+
+  // Recent layoffs
+  async getRecentLayoffs(): Promise<any[]> {
+    const layoffs = await db
+      .select({
+        id: layoffEvents.id,
+        title: layoffEvents.title,
+        description: layoffEvents.description,
+        affectedEmployees: layoffEvents.affectedEmployees,
+        eventDate: layoffEvents.eventDate,
+        severity: layoffEvents.severity,
+        company: companies.name,
+      })
+      .from(layoffEvents)
+      .innerJoin(companies, eq(layoffEvents.companyId, companies.id))
+      .orderBy(desc(layoffEvents.eventDate))
+      .limit(20);
+    return layoffs;
+  }
+
+  // Get all companies
+  async getAllCompanies(): Promise<Company[]> {
+    const companyList = await db
+      .select()
+      .from(companies)
+      .orderBy(companies.name);
+    return companyList;
   }
 }
 

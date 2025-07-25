@@ -172,6 +172,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Recent layoffs endpoint
+  app.get('/api/layoffs/recent', async (req, res) => {
+    try {
+      const recentLayoffs = await storage.getRecentLayoffs();
+      res.json(recentLayoffs);
+    } catch (error) {
+      console.error("Error fetching recent layoffs:", error);
+      res.status(500).json({ message: "Failed to fetch recent layoffs" });
+    }
+  });
+
+  // Companies endpoint
+  app.get('/api/companies', async (req, res) => {
+    try {
+      const companies = await storage.getAllCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
