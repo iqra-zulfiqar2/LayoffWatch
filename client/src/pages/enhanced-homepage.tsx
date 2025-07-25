@@ -47,8 +47,7 @@ interface Company {
   lastUpdate: string;
 }
 
-function Header() {
-  const { user } = useAuth();
+function Header({ user }: { user: any }) {
   
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -353,7 +352,7 @@ export default function EnhancedHomepage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header user={user} />
       
       {/* Hero Stats Section */}
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white">
