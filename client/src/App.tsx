@@ -12,6 +12,7 @@ import Analytics from "@/pages/analytics";
 import Pricing from "@/pages/pricing";
 import Subscription from "@/pages/subscription";
 import EnhancedHomepage from "@/pages/enhanced-homepage";
+import RiskScanner from "@/pages/risk-scanner";
 import AuthLanding from "@/pages/auth-landing";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/subscription" component={Subscription} />
+      <Route path="/risk-scanner" component={RiskScanner} />
       {/* Main homepage - accessible to all users */}
       <Route path="/" component={EnhancedHomepage} />
       <Route component={NotFound} />

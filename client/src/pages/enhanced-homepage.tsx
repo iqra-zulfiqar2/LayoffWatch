@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginDialog } from "@/components/login-dialog";
 import { CompanyTable } from "@/components/company-table";
+import { Link } from "wouter";
 import { 
   TrendingDown, 
   Building, 
@@ -21,7 +22,8 @@ import {
   AlertTriangle,
   Globe,
   Briefcase,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
@@ -57,6 +59,7 @@ function Header({ user }: { user: any }) {
             <h1 className="text-2xl font-bold text-gray-900">LayoffTracker</h1>
             <nav className="hidden md:flex items-center space-x-6">
               <a href="/" className="text-blue-600 font-medium">Home</a>
+              <a href="/risk-scanner" className="text-gray-600 hover:text-gray-900">Risk Scanner</a>
               {user ? (
                 <>
                   <a href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</a>
@@ -365,6 +368,21 @@ export default function EnhancedHomepage() {
               Comprehensive tracking of layoffs from major sources including layoffs.fyi, WARN Act data, and government reports. 
               Stay informed with real-time updates across all industries. {!user ? "Sign up for personalized tracking and notifications." : ""}
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link href="/risk-scanner">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3">
+                  <Shield className="mr-2 h-5 w-5" />
+                  Analyze Job Security Risk
+                </Button>
+              </Link>
+              {!user && (
+                <LoginDialog>
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3">
+                    Start Tracking Free
+                  </Button>
+                </LoginDialog>
+              )}
+            </div>
           </div>
 
           {/* Key Statistics */}

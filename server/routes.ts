@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { analyzeJobSecurityRisk } from "./anthropic";
 import { dataIntegrator } from "./data-integrator";
 import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 
@@ -293,6 +294,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timespan: "Since 1988"
       }
     });
+  });
+
+  // Risk Analysis API
+  app.post("/api/risk-analysis", async (req, res) => {
+    try {
+      const { jobTitle, companyName, yearsExperience, currentSkills, industry } = req.body;
+      
+      if (!jobTitle || !companyName) {
+        return res.status(400).json({ 
+          message: "Job title and company name are required" 
+        });
+      }
+
+      const analysis = await analyzeJobSecurityRisk({
+        jobTitle,
+        companyName,
+        yearsExperience,
+        currentSkills,
+        industry
+      });
+
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error in risk analysis:", error);
+      res.status(500).json({ 
+        message: "Failed to analyze job security risk",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
   });
 
   const httpServer = createServer(app);
