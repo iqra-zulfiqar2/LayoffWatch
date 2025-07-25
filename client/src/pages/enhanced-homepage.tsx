@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoginDialog } from "@/components/login-dialog";
 import { 
   TrendingDown, 
   Building, 
@@ -67,9 +68,9 @@ function Header() {
                 <a href="/api/logout" className="text-gray-600 hover:text-gray-900">Sign Out</a>
               </>
             ) : (
-              <Button asChild>
-                <a href="/api/login">Sign In</a>
-              </Button>
+              <LoginDialog>
+                <Button>Sign In</Button>
+              </LoginDialog>
             )}
           </div>
         </div>
@@ -263,7 +264,7 @@ export default function EnhancedHomepage() {
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                         </div>
                       ) : (
-                        recentLayoffs?.slice(0, 10).map((layoff: LayoffEvent) => (
+                        Array.isArray(recentLayoffs) ? recentLayoffs.slice(0, 10).map((layoff: LayoffEvent) => (
                           <div key={layoff.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-2">
                               <div>
@@ -294,7 +295,7 @@ export default function EnhancedHomepage() {
                               {getSourceBadge(layoff.sourceType)}
                             </div>
                           </div>
-                        ))
+                        )) : []
                       )}
                     </div>
                   </CardContent>
@@ -356,7 +357,7 @@ export default function EnhancedHomepage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {companies?.slice(0, 12).map((company: Company) => (
+                  {Array.isArray(companies) ? companies.slice(0, 12).map((company: Company) => (
                     <div key={company.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-semibold">{company.name}</h3>
@@ -370,7 +371,7 @@ export default function EnhancedHomepage() {
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
-                  ))}
+                  )) : []}
                 </div>
               </CardContent>
             </Card>
@@ -448,9 +449,11 @@ export default function EnhancedHomepage() {
             <Button size="lg" variant="secondary">
               <a href="/pricing">View Pricing Plans</a>
             </Button>
-            <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
-              <a href="/api/login">Get Started Free</a>
-            </Button>
+            <LoginDialog>
+              <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
+                Get Started Free
+              </Button>
+            </LoginDialog>
           </div>
         </div>
       </div>
