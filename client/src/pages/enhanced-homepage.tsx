@@ -370,14 +370,14 @@ export default function EnhancedHomepage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link href="/risk-scanner">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3">
+                <Button size="lg" className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 text-white shadow-xl transform hover:scale-105 transition-all duration-200 px-8 py-3">
                   <Shield className="mr-2 h-5 w-5" />
                   Analyze Job Security Risk
                 </Button>
               </Link>
               {!user && (
                 <LoginDialog>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 shadow-lg">
                     Start Tracking Free
                   </Button>
                 </LoginDialog>
@@ -413,21 +413,25 @@ export default function EnhancedHomepage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Company Database CTA */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-xl p-6 mb-8 text-white shadow-2xl">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">🏢 Company Layoffs Database</h2>
-              <p className="text-blue-100">Browse comprehensive layoff data with company logos, financials, headcount, and real-time updates from major corporations like Meta, Amazon, Microsoft, and more.</p>
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Building className="h-6 w-6" />
+                Company Layoffs Database
+              </h2>
+              <p className="text-purple-100">Browse comprehensive layoff data with company logos, financials, headcount, and real-time updates from major corporations like Meta, Amazon, Microsoft, and more.</p>
               {!user && (
-                <p className="text-blue-200 text-sm mt-2">
-                  💡 Sign up for personalized tracking, notifications, and advanced analytics
+                <p className="text-purple-200 text-sm mt-2 flex items-center gap-1">
+                  <Shield className="h-4 w-4" />
+                  Sign up for personalized tracking, notifications, and advanced analytics
                 </p>
               )}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <Button 
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
+                className="bg-gradient-to-r from-white to-purple-50 text-purple-700 hover:from-purple-50 hover:to-white shadow-lg transform hover:scale-105 transition-all duration-200"
                 onClick={() => setSelectedTab("companies")}
               >
                 <Building className="w-5 h-5 mr-2" />
@@ -438,7 +442,7 @@ export default function EnhancedHomepage() {
                   <Button 
                     size="sm"
                     variant="outline"
-                    className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
+                    className="bg-transparent border-white text-white hover:bg-white hover:text-purple-600 shadow-md transition-all duration-200"
                   >
                     Get Started Free
                   </Button>

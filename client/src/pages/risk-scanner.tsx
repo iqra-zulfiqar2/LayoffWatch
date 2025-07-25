@@ -108,10 +108,10 @@ export default function RiskScanner() {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case "low": return "text-green-600 bg-green-50 border-green-200";
-      case "medium": return "text-yellow-600 bg-yellow-50 border-yellow-200";
-      case "high": return "text-orange-600 bg-orange-50 border-orange-200";
-      case "critical": return "text-red-600 bg-red-50 border-red-200";
+      case "low": return "text-emerald-700 bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 shadow-lg";
+      case "medium": return "text-amber-700 bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 shadow-lg";
+      case "high": return "text-orange-700 bg-gradient-to-r from-orange-50 to-red-50 border-orange-300 shadow-lg";
+      case "critical": return "text-red-700 bg-gradient-to-r from-red-50 to-pink-50 border-red-300 shadow-lg";
       default: return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
@@ -127,10 +127,13 @@ export default function RiskScanner() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4">
+            <Shield className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
             AI Job Security Risk Scanner
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -138,13 +141,13 @@ export default function RiskScanner() {
           </p>
         </div>
 
-        <Card className="mb-8">
-          <CardHeader>
+        <Card className="mb-8 border-0 shadow-2xl bg-gradient-to-r from-white to-purple-50 dark:from-gray-800 dark:to-gray-700">
+          <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg">
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
               Risk Analysis Form
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-purple-100">
               Provide your job details for a comprehensive security analysis
             </CardDescription>
           </CardHeader>
@@ -212,7 +215,7 @@ export default function RiskScanner() {
 
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transform hover:scale-105 transition-all duration-200" 
                 disabled={analyzeRiskMutation.isPending}
               >
                 {analyzeRiskMutation.isPending ? "Analyzing..." : "Analyze Job Security Risk"}
@@ -224,8 +227,8 @@ export default function RiskScanner() {
         {analysis && (
           <div className="space-y-6">
             {/* Risk Overview */}
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-700">
+              <CardHeader className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   {getRiskIcon(analysis.riskLevel)}
                   Risk Assessment Overview
@@ -247,8 +250,8 @@ export default function RiskScanner() {
 
             {/* Company & Job Analysis */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700">
+                <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5" />
                     Company Health
@@ -272,8 +275,8 @@ export default function RiskScanner() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700">
+                <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
                     Job Title Risk
@@ -299,8 +302,8 @@ export default function RiskScanner() {
             </div>
 
             {/* Market Outlook */}
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+              <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
                   Market Outlook
@@ -312,8 +315,8 @@ export default function RiskScanner() {
             </Card>
 
             {/* Recommendations */}
-            <Card>
-              <CardHeader>
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-gray-800 dark:to-gray-700">
+              <CardHeader className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <Lightbulb className="h-5 w-5" />
                   Personalized Recommendations
@@ -321,32 +324,44 @@ export default function RiskScanner() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-red-600 mb-3">Immediate Actions</h4>
+                  <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-lg border border-red-200">
+                    <h4 className="font-semibold text-red-700 mb-3 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      Immediate Actions
+                    </h4>
                     <ul className="space-y-2">
                       {analysis.recommendations.immediate.map((rec, index) => (
-                        <li key={index} className="text-sm text-gray-600 dark:text-gray-400">
-                          • {rec}
+                        <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                          <span className="text-red-500">•</span>
+                          {rec}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-yellow-600 mb-3">Short-term (1-6 months)</h4>
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200">
+                    <h4 className="font-semibold text-amber-700 mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      Short-term (1-6 months)
+                    </h4>
                     <ul className="space-y-2">
                       {analysis.recommendations.shortTerm.map((rec, index) => (
-                        <li key={index} className="text-sm text-gray-600 dark:text-gray-400">
-                          • {rec}
+                        <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                          <span className="text-amber-500">•</span>
+                          {rec}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-green-600 mb-3">Long-term (6+ months)</h4>
+                  <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-4 rounded-lg border border-emerald-200">
+                    <h4 className="font-semibold text-emerald-700 mb-3 flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Long-term (6+ months)
+                    </h4>
                     <ul className="space-y-2">
                       {analysis.recommendations.longTerm.map((rec, index) => (
-                        <li key={index} className="text-sm text-gray-600 dark:text-gray-400">
-                          • {rec}
+                        <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                          <span className="text-emerald-500">•</span>
+                          {rec}
                         </li>
                       ))}
                     </ul>
@@ -357,14 +372,20 @@ export default function RiskScanner() {
 
             {/* Skill Gaps */}
             {analysis.skillGaps.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skill Development Opportunities</CardTitle>
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700">
+                <CardHeader className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    Skill Development Opportunities
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {analysis.skillGaps.map((skill, index) => (
-                      <Badge key={index} variant="outline">
+                      <Badge 
+                        key={index} 
+                        className="bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-700 border-teal-300 hover:from-teal-200 hover:to-cyan-200 transition-all duration-200 shadow-sm"
+                      >
                         {skill}
                       </Badge>
                     ))}
