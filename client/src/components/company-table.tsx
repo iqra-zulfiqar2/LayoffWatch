@@ -35,6 +35,15 @@ interface CompanyData {
   logoUrl?: string;
   description?: string;
   website?: string;
+  companyType: 'Public' | 'Private' | 'Pre-IPO';
+  headcount: number;
+  previousHeadcount?: number;
+  marketCap?: string;
+  revenue?: string;
+  founded?: string;
+  ceo?: string;
+  ticker?: string;
+  exchange?: string;
 }
 
 interface CompanyTableProps {
@@ -47,6 +56,8 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
   const [industryFilter, setIndustryFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
   const [stageFilter, setStageFilter] = useState("all");
+  const [companyTypeFilter, setCompanyTypeFilter] = useState("all");
+  const [headcountFilter, setHeadcountFilter] = useState("all");
   const [sortField, setSortField] = useState<keyof CompanyData>("layoffDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -85,6 +96,23 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
     return colors[stage as keyof typeof colors] || colors.Unknown;
   };
 
+  const getCompanyTypeColor = (type: string) => {
+    const colors = {
+      'Public': 'bg-green-100 text-green-800',
+      'Private': 'bg-blue-100 text-blue-800',
+      'Pre-IPO': 'bg-purple-100 text-purple-800'
+    };
+    return colors[type as keyof typeof colors] || colors.Private;
+  };
+
+  const getHeadcountRange = (headcount: number) => {
+    if (headcount < 50) return 'Startup (1-49)';
+    if (headcount < 200) return 'Small (50-199)';
+    if (headcount < 1000) return 'Medium (200-999)';
+    if (headcount < 5000) return 'Large (1K-5K)';
+    return 'Enterprise (5K+)';
+  };
+
   const formatCurrency = (amount: string) => {
     if (!amount || amount === '$0') return '-';
     return amount;
@@ -104,12 +132,21 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
     
     let filtered = data.filter(company => {
       const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           company.location.toLowerCase().includes(searchTerm.toLowerCase());
+                           company.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           company.ceo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           company.ticker?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesIndustry = industryFilter === "all" || company.industry === industryFilter;
       const matchesCountry = countryFilter === "all" || company.country === countryFilter;
       const matchesStage = stageFilter === "all" || company.stage === stageFilter;
+      const matchesCompanyType = companyTypeFilter === "all" || company.companyType === companyTypeFilter;
+      const matchesHeadcount = headcountFilter === "all" || 
+        (headcountFilter === "startup" && company.headcount < 50) ||
+        (headcountFilter === "small" && company.headcount >= 50 && company.headcount < 200) ||
+        (headcountFilter === "medium" && company.headcount >= 200 && company.headcount < 1000) ||
+        (headcountFilter === "large" && company.headcount >= 1000 && company.headcount < 5000) ||
+        (headcountFilter === "enterprise" && company.headcount >= 5000);
       
-      return matchesSearch && matchesIndustry && matchesCountry && matchesStage;
+      return matchesSearch && matchesIndustry && matchesCountry && matchesStage && matchesCompanyType && matchesHeadcount;
     });
 
     // Sort data
@@ -146,127 +183,239 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
     }
   };
 
-  // Mock data matching the image format
+  // Enhanced mock data with comprehensive information
   const mockData: CompanyData[] = [
     {
       id: '1',
-      name: 'WiseTech',
-      location: 'Sydney, Australia',
-      industry: 'Logistics',
-      layoffCount: 0,
-      layoffDate: '7/23/2025',
-      percentage: '0%',
+      name: 'Meta',
+      location: 'Menlo Park, CA',
+      industry: 'Technology',
+      layoffCount: 11000,
+      layoffDate: '1/25/2025',
+      percentage: '13%',
       stage: 'Post-IPO',
-      raised: '$3,000',
-      country: 'Australia',
-      dateAdded: '7/24/2025',
+      raised: '$16,000M',
+      country: 'United States',
+      dateAdded: '1/25/2025',
       source: 'https://www.reuters.com',
-      website: 'wisetech.com'
+      website: 'meta.com',
+      companyType: 'Public',
+      headcount: 77800,
+      previousHeadcount: 88800,
+      marketCap: '$762B',
+      revenue: '$134.9B',
+      founded: '2004',
+      ceo: 'Mark Zuckerberg',
+      ticker: 'META',
+      exchange: 'NASDAQ'
     },
     {
       id: '2', 
-      name: 'ConsenSys',
-      location: 'New York, NY',
-      industry: 'Crypto',
-      layoffCount: 47,
-      layoffDate: '7/22/2025',
-      percentage: '7%',
-      stage: 'Series D',
-      raised: '$726',
+      name: 'Amazon',
+      location: 'Seattle, WA',
+      industry: 'Technology',
+      layoffCount: 18000,
+      layoffDate: '1/18/2025',
+      percentage: '1.2%',
+      stage: 'Post-IPO',
+      raised: '$54,000M',
       country: 'United States',
-      dateAdded: '7/23/2025',
+      dateAdded: '1/18/2025',
       source: 'https://www.bloomberg.com',
-      website: 'consensys.net'
+      website: 'amazon.com',
+      companyType: 'Public',
+      headcount: 1500000,
+      previousHeadcount: 1518000,
+      marketCap: '$1.78T',
+      revenue: '$574.8B',
+      founded: '1994',
+      ceo: 'Andy Jassy',
+      ticker: 'AMZN',
+      exchange: 'NASDAQ'
     },
     {
       id: '3',
-      name: 'Zeen',
-      location: 'SF Bay Area, CA',
-      industry: 'Consumer',
-      layoffCount: 0,
-      layoffDate: '7/21/2025',
-      percentage: '100%',
-      stage: 'Unknown',
-      raised: '$9',
+      name: 'Microsoft',
+      location: 'Redmond, WA',
+      industry: 'Technology',
+      layoffCount: 10000,
+      layoffDate: '1/18/2025',
+      percentage: '4.5%',
+      stage: 'Post-IPO',
+      raised: '$61,000M',
       country: 'United States',
-      dateAdded: '7/23/2025',
+      dateAdded: '1/18/2025',
       source: 'https://www.businessinsider.com',
-      website: 'zeen.com'
+      website: 'microsoft.com',
+      companyType: 'Public',
+      headcount: 221000,
+      previousHeadcount: 231000,
+      marketCap: '$3.18T',
+      revenue: '$211.9B',
+      founded: '1975',
+      ceo: 'Satya Nadella',
+      ticker: 'MSFT',
+      exchange: 'NASDAQ'
     },
     {
       id: '4',
-      name: 'Rocket Companies',
-      location: 'Detroit, MI',
-      industry: 'Real Estate',
-      layoffCount: 0,
-      layoffDate: '7/18/2025',
-      percentage: '2%',
+      name: 'Salesforce',
+      location: 'San Francisco, CA',
+      industry: 'Technology',
+      layoffCount: 8000,
+      layoffDate: '1/4/2025',
+      percentage: '8%',
       stage: 'Post-IPO',
-      raised: '$5,200',
+      raised: '$7,200M',
       country: 'United States',
-      dateAdded: '7/23/2025',
-      source: 'https://www.housingwire.com',
-      website: 'rocketcompanies.com'
+      dateAdded: '1/4/2025',
+      source: 'https://www.cnbc.com',
+      website: 'salesforce.com',
+      companyType: 'Public',
+      headcount: 73000,
+      previousHeadcount: 81000,
+      marketCap: '$248B',
+      revenue: '$34.9B',
+      founded: '1999',
+      ceo: 'Marc Benioff',
+      ticker: 'CRM',
+      exchange: 'NYSE'
     },
     {
       id: '5',
-      name: 'Amazon',
-      location: 'Seattle, WA',
-      industry: 'Retail',
-      layoffCount: 0,
-      layoffDate: '7/17/2025',
-      percentage: '0%',
+      name: 'Netflix',
+      location: 'Los Gatos, CA',
+      industry: 'Media',
+      layoffCount: 450,
+      layoffDate: '5/17/2024',
+      percentage: '4%',
       stage: 'Post-IPO',
-      raised: '$8,100',
+      raised: '$8,100M',
       country: 'United States',
-      dateAdded: '7/19/2025',
-      source: 'https://www.reuters.com',
-      website: 'amazon.com'
+      dateAdded: '5/17/2024',
+      source: 'https://variety.com',
+      website: 'netflix.com',
+      companyType: 'Public',
+      headcount: 11300,
+      previousHeadcount: 11750,
+      marketCap: '$245B',
+      revenue: '$33.7B',
+      founded: '1997',
+      ceo: 'Ted Sarandos',
+      ticker: 'NFLX',
+      exchange: 'NASDAQ'
     },
     {
       id: '6',
-      name: 'Amicole',
-      location: 'New York, NY',
-      industry: 'Retail',
-      layoffCount: 0,
-      layoffDate: '7/17/2025',
-      percentage: '100%',
-      stage: 'Seed',
-      raised: '$5',
+      name: 'Stripe',
+      location: 'San Francisco, CA',
+      industry: 'Fintech',
+      layoffCount: 1120,
+      layoffDate: '11/3/2024',
+      percentage: '14%',
+      stage: 'Pre-IPO',
+      raised: '$6,500M',
       country: 'United States',
-      dateAdded: '7/19/2025',
+      dateAdded: '11/3/2024',
       source: 'https://techcrunch.com',
-      website: 'amicole.com'
+      website: 'stripe.com',
+      companyType: 'Private',
+      headcount: 7000,
+      previousHeadcount: 8120,
+      marketCap: '$95B',
+      revenue: '$14.4B',
+      founded: '2010',
+      ceo: 'Patrick Collison'
     },
     {
       id: '7',
-      name: 'CodeParrot',
-      location: 'Bengaluru, India',
-      industry: 'Product',
+      name: 'OpenAI',
+      location: 'San Francisco, CA',
+      industry: 'AI',
       layoffCount: 0,
-      layoffDate: '7/17/2025',
-      percentage: '100%',
-      stage: 'Seed',
-      raised: '-',
-      country: 'India',
-      dateAdded: '7/19/2025',
-      source: 'https://inc42.com',
-      website: 'codeparrot.com'
+      layoffDate: '12/1/2024',
+      percentage: '0%',
+      stage: 'Pre-IPO',
+      raised: '$13,000M',
+      country: 'United States',
+      dateAdded: '12/1/2024',
+      source: 'https://techcrunch.com',
+      website: 'openai.com',
+      companyType: 'Private',
+      headcount: 1700,
+      previousHeadcount: 1700,
+      marketCap: '$157B',
+      revenue: '$3.4B',
+      founded: '2015',
+      ceo: 'Sam Altman'
     },
     {
       id: '8',
-      name: 'Scale AI',
-      location: 'SF Bay Area, CA',
-      industry: 'Data',
-      layoffCount: 200,
-      layoffDate: '7/16/2025',
-      percentage: '14%',
-      stage: 'Series E',
-      raised: '$602',
+      name: 'Uber',
+      location: 'San Francisco, CA',
+      industry: 'Transportation',
+      layoffCount: 6700,
+      layoffDate: '5/6/2024',
+      percentage: '25%',
+      stage: 'Post-IPO',
+      raised: '$25,200M',
       country: 'United States',
-      dateAdded: '7/17/2025',
+      dateAdded: '5/6/2024',
       source: 'https://www.bloomberg.com',
-      website: 'scale.com'
+      website: 'uber.com',
+      companyType: 'Public',
+      headcount: 22800,
+      previousHeadcount: 29500,
+      marketCap: '$142B',
+      revenue: '$37.3B',
+      founded: '2009',
+      ceo: 'Dara Khosrowshahi',
+      ticker: 'UBER',
+      exchange: 'NYSE'
+    },
+    {
+      id: '9',
+      name: 'ByteDance',
+      location: 'Beijing, China',
+      industry: 'Social Media',
+      layoffCount: 1200,
+      layoffDate: '10/27/2024',
+      percentage: '1%',
+      stage: 'Pre-IPO',
+      raised: '$9,400M',
+      country: 'China',
+      dateAdded: '10/27/2024',
+      source: 'https://www.reuters.com',
+      website: 'bytedance.com',
+      companyType: 'Private',
+      headcount: 150000,
+      previousHeadcount: 151200,
+      marketCap: '$268B',
+      revenue: '$110B',
+      founded: '2012',
+      ceo: 'Shou Zi Chew'
+    },
+    {
+      id: '10',
+      name: 'SpaceX',
+      location: 'Hawthorne, CA',
+      industry: 'Aerospace',
+      layoffCount: 600,
+      layoffDate: '1/11/2024',
+      percentage: '8%',
+      stage: 'Pre-IPO',
+      raised: '$9,800M',
+      country: 'United States',
+      dateAdded: '1/11/2024',
+      source: 'https://www.cnbc.com',
+      website: 'spacex.com',
+      companyType: 'Private',
+      headcount: 13000,
+      previousHeadcount: 13600,
+      marketCap: '$175B',
+      revenue: '$8.7B',
+      founded: '2002',
+      ceo: 'Elon Musk'
     }
   ];
 
@@ -336,9 +485,36 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
               <SelectContent>
                 <SelectItem value="all">All Countries</SelectItem>
                 <SelectItem value="United States">United States</SelectItem>
+                <SelectItem value="China">China</SelectItem>
                 <SelectItem value="Australia">Australia</SelectItem>
                 <SelectItem value="India">India</SelectItem>
                 <SelectItem value="Sweden">Sweden</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={companyTypeFilter} onValueChange={setCompanyTypeFilter}>
+              <SelectTrigger className="w-full sm:w-32">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="Public">Public</SelectItem>
+                <SelectItem value="Private">Private</SelectItem>
+                <SelectItem value="Pre-IPO">Pre-IPO</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={headcountFilter} onValueChange={setHeadcountFilter}>
+              <SelectTrigger className="w-full sm:w-32">
+                <SelectValue placeholder="Size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sizes</SelectItem>
+                <SelectItem value="startup">Startup (1-49)</SelectItem>
+                <SelectItem value="small">Small (50-199)</SelectItem>
+                <SelectItem value="medium">Medium (200-999)</SelectItem>
+                <SelectItem value="large">Large (1K-5K)</SelectItem>
+                <SelectItem value="enterprise">Enterprise (5K+)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -393,8 +569,11 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
                 <TableHead className="text-center">%</TableHead>
                 <TableHead>Industry</TableHead>
                 <TableHead>Source</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Stage</TableHead>
+                <TableHead className="text-center">Headcount</TableHead>
                 <TableHead className="text-right">$ Raised</TableHead>
+                <TableHead className="text-right">Market Cap</TableHead>
                 <TableHead>Country</TableHead>
                 <TableHead>
                   <Button 
@@ -424,8 +603,12 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
                       </Avatar>
                       <div>
                         <div className="font-medium text-gray-900">{company.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {company.founded && `Founded ${company.founded}`}
+                          {company.ceo && ` • CEO: ${company.ceo}`}
+                        </div>
                         {company.website && (
-                          <div className="text-xs text-gray-500 flex items-center">
+                          <div className="text-xs text-blue-600 flex items-center mt-1">
                             <ExternalLink className="w-3 h-3 mr-1" />
                             {company.website}
                           </div>
@@ -483,14 +666,39 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
                     </a>
                   </TableCell>
                   <TableCell>
+                    <Badge className={`text-xs ${getCompanyTypeColor(company.companyType)}`}>
+                      {company.companyType}
+                      {company.ticker && (
+                        <span className="ml-1 font-mono">({company.ticker})</span>
+                      )}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     <Badge className={`text-xs ${getStageColor(company.stage)}`}>
                       {company.stage}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="text-sm">
+                      <div className="font-medium">{company.headcount.toLocaleString()}</div>
+                      <div className="text-xs text-gray-500">{getHeadcountRange(company.headcount)}</div>
+                      {company.previousHeadcount && company.previousHeadcount !== company.headcount && (
+                        <div className="text-xs text-red-500">
+                          ↓ from {company.previousHeadcount.toLocaleString()}
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end text-sm">
                       <DollarSign className="w-3 h-3 mr-1 text-gray-400" />
                       {formatCurrency(company.raised)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end text-sm">
+                      <DollarSign className="w-3 h-3 mr-1 text-gray-400" />
+                      {company.marketCap || '-'}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -518,6 +726,8 @@ export function CompanyTable({ data, isLoading }: CompanyTableProps) {
                 setIndustryFilter("all");
                 setCountryFilter("all");
                 setStageFilter("all");
+                setCompanyTypeFilter("all");
+                setHeadcountFilter("all");
               }}
               className="mt-2"
             >
