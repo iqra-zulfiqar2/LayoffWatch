@@ -124,6 +124,198 @@ export default function EnhancedHomepage() {
 
   const colors = ['#3B82F6', '#EF4444', '#F59E0B', '#10B981', '#8B5CF6'];
 
+  // Mock company data to pass to CompanyTable
+  const mockCompanyData = [
+    {
+      id: '1',
+      name: 'Meta',
+      location: 'Menlo Park, CA',
+      industry: 'Technology',
+      layoffCount: 11000,
+      layoffDate: '1/25/2025',
+      percentage: '13%',
+      stage: 'Post-IPO',
+      raised: '$16,000M',
+      country: 'United States',
+      dateAdded: '1/25/2025',
+      source: 'https://www.reuters.com',
+      website: 'meta.com',
+      companyType: 'Public' as const,
+      headcount: 77800,
+      previousHeadcount: 88800,
+      marketCap: '$762B',
+      revenue: '$134.9B',
+      founded: '2004',
+      ceo: 'Mark Zuckerberg',
+      ticker: 'META',
+      exchange: 'NASDAQ'
+    },
+    {
+      id: '2', 
+      name: 'Amazon',
+      location: 'Seattle, WA',
+      industry: 'Technology',
+      layoffCount: 18000,
+      layoffDate: '1/18/2025',
+      percentage: '1.2%',
+      stage: 'Post-IPO',
+      raised: '$54,000M',
+      country: 'United States',
+      dateAdded: '1/18/2025',
+      source: 'https://www.bloomberg.com',
+      website: 'amazon.com',
+      companyType: 'Public' as const,
+      headcount: 1500000,
+      previousHeadcount: 1518000,
+      marketCap: '$1.78T',
+      revenue: '$574.8B',
+      founded: '1994',
+      ceo: 'Andy Jassy',
+      ticker: 'AMZN',
+      exchange: 'NASDAQ'
+    },
+    {
+      id: '3',
+      name: 'Microsoft',
+      location: 'Redmond, WA',
+      industry: 'Technology',
+      layoffCount: 10000,
+      layoffDate: '1/18/2025',
+      percentage: '4.5%',
+      stage: 'Post-IPO',
+      raised: '$61,000M',
+      country: 'United States',
+      dateAdded: '1/18/2025',
+      source: 'https://www.businessinsider.com',
+      website: 'microsoft.com',
+      companyType: 'Public' as const,
+      headcount: 221000,
+      previousHeadcount: 231000,
+      marketCap: '$3.18T',
+      revenue: '$211.9B',
+      founded: '1975',
+      ceo: 'Satya Nadella',
+      ticker: 'MSFT',
+      exchange: 'NASDAQ'
+    },
+    {
+      id: '4',
+      name: 'Salesforce',
+      location: 'San Francisco, CA',
+      industry: 'Technology',
+      layoffCount: 8000,
+      layoffDate: '1/4/2025',
+      percentage: '8%',
+      stage: 'Post-IPO',
+      raised: '$7,200M',
+      country: 'United States',
+      dateAdded: '1/4/2025',
+      source: 'https://www.cnbc.com',
+      website: 'salesforce.com',
+      companyType: 'Public' as const,
+      headcount: 73000,
+      previousHeadcount: 81000,
+      marketCap: '$248B',
+      revenue: '$34.9B',
+      founded: '1999',
+      ceo: 'Marc Benioff',
+      ticker: 'CRM',
+      exchange: 'NYSE'
+    },
+    {
+      id: '5',
+      name: 'Netflix',
+      location: 'Los Gatos, CA',
+      industry: 'Media',
+      layoffCount: 450,
+      layoffDate: '5/17/2024',
+      percentage: '4%',
+      stage: 'Post-IPO',
+      raised: '$8,100M',
+      country: 'United States',
+      dateAdded: '5/17/2024',
+      source: 'https://variety.com',
+      website: 'netflix.com',
+      companyType: 'Public' as const,
+      headcount: 11300,
+      previousHeadcount: 11750,
+      marketCap: '$245B',
+      revenue: '$33.7B',
+      founded: '1997',
+      ceo: 'Ted Sarandos',
+      ticker: 'NFLX',
+      exchange: 'NASDAQ'
+    },
+    {
+      id: '6',
+      name: 'Stripe',
+      location: 'San Francisco, CA',
+      industry: 'Fintech',
+      layoffCount: 1120,
+      layoffDate: '11/3/2024',
+      percentage: '14%',
+      stage: 'Pre-IPO',
+      raised: '$6,500M',
+      country: 'United States',
+      dateAdded: '11/3/2024',
+      source: 'https://techcrunch.com',
+      website: 'stripe.com',
+      companyType: 'Private' as const,
+      headcount: 7000,
+      previousHeadcount: 8120,
+      marketCap: '$95B',
+      revenue: '$14.4B',
+      founded: '2010',
+      ceo: 'Patrick Collison'
+    },
+    {
+      id: '7',
+      name: 'OpenAI',
+      location: 'San Francisco, CA',
+      industry: 'AI',
+      layoffCount: 0,
+      layoffDate: '12/1/2024',
+      percentage: '0%',
+      stage: 'Pre-IPO',
+      raised: '$13,000M',
+      country: 'United States',
+      dateAdded: '12/1/2024',
+      source: 'https://techcrunch.com',
+      website: 'openai.com',
+      companyType: 'Private' as const,
+      headcount: 1700,
+      previousHeadcount: 1700,
+      marketCap: '$157B',
+      revenue: '$3.4B',
+      founded: '2015',
+      ceo: 'Sam Altman'
+    },
+    {
+      id: '8',
+      name: 'Uber',
+      location: 'San Francisco, CA',
+      industry: 'Transportation',
+      layoffCount: 6700,
+      layoffDate: '5/6/2024',
+      percentage: '25%',
+      stage: 'Post-IPO',
+      raised: '$25,200M',
+      country: 'United States',
+      dateAdded: '5/6/2024',
+      source: 'https://www.bloomberg.com',
+      website: 'uber.com',
+      companyType: 'Public' as const,
+      headcount: 22800,
+      previousHeadcount: 29500,
+      marketCap: '$142B',
+      revenue: '$37.3B',
+      founded: '2009',
+      ceo: 'Dara Khosrowshahi',
+      ticker: 'UBER',
+      exchange: 'NYSE'
+    }
+  ];
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical': return 'bg-red-100 text-red-800';
@@ -194,6 +386,24 @@ export default function EnhancedHomepage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Company Database CTA */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">🏢 Company Layoffs Database</h2>
+              <p className="text-blue-100">Browse comprehensive layoff data with company logos, financials, headcount, and real-time updates from major corporations like Meta, Amazon, Microsoft, and more.</p>
+            </div>
+            <Button 
+              size="lg"
+              className="bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
+              onClick={() => setSelectedTab("companies")}
+            >
+              <Building className="w-5 h-5 mr-2" />
+              View Companies
+            </Button>
+          </div>
+        </div>
+
         {/* Search and Filters */}
         <div className="mb-8">
           <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -240,10 +450,12 @@ export default function EnhancedHomepage() {
         {/* Main Content Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="recent">Recent Layoffs</TabsTrigger>
-            <TabsTrigger value="companies">Company Database</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-            <TabsTrigger value="map">Geographic</TabsTrigger>
+            <TabsTrigger value="recent">📈 Recent Layoffs</TabsTrigger>
+            <TabsTrigger value="companies" className="bg-blue-50 border-blue-200 font-bold text-blue-700">
+              🏢 Company Database
+            </TabsTrigger>
+            <TabsTrigger value="trends">📊 Trends</TabsTrigger>
+            <TabsTrigger value="map">🗺️ Geographic</TabsTrigger>
           </TabsList>
 
           {/* Recent Layoffs Tab */}
@@ -253,10 +465,21 @@ export default function EnhancedHomepage() {
               <div className="lg:col-span-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingDown className="w-5 h-5 text-red-500" />
-                      Latest Layoff Events
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingDown className="w-5 h-5 text-red-500" />
+                        Latest Layoff Events
+                      </CardTitle>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedTab("companies")}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        <Building className="w-4 h-4 mr-1" />
+                        View Companies
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -349,7 +572,18 @@ export default function EnhancedHomepage() {
 
           {/* Companies Tab */}
           <TabsContent value="companies">
-            <CompanyTable />
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Company Layoffs Database</h2>
+                  <p className="text-gray-600">Comprehensive layoff data with company logos, financials, and real-time updates</p>
+                </div>
+                <Badge variant="outline" className="text-blue-600 border-blue-200">
+                  {mockCompanyData.length} Companies
+                </Badge>
+              </div>
+            </div>
+            <CompanyTable data={mockCompanyData} />
           </TabsContent>
 
           {/* Trends Tab */}
