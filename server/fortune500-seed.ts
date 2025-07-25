@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { companies, layoffEvents } from "@shared/schema";
 import { nanoid } from "nanoid";
+import { eq } from "drizzle-orm";
 
 // Fortune 500 companies data with employee counts, revenue, and comprehensive details
 const fortune500Companies = [
@@ -1069,16 +1070,18 @@ export async function seedFortune500Companies() {
   console.log("Starting Fortune 500 companies seed...");
   
   try {
-    // Clear existing companies to avoid duplicates
-    console.log("Clearing existing companies...");
-    await db.delete(companies);
+    // Keep existing companies and only add new ones to avoid duplicates
+    console.log("Checking for existing companies...");
     
-    // Insert Fortune 500 companies
-    console.log(`Inserting ${allFortune500Companies.length} Fortune 500 companies...`);
+    // Check existing companies and update/insert Fortune 500 companies
+    const existingCompanies = await db.select({ name: companies.name, id: companies.id }).from(companies);
+    const existingNames = new Map(existingCompanies.map(c => [c.name, c.id]));
+    
+    console.log(`Found ${existingCompanies.length} existing companies`);
+    console.log(`Processing ${allFortune500Companies.length} Fortune 500 companies...`);
     
     for (const company of allFortune500Companies) {
       const companyData = {
-        id: nanoid(),
         name: company.name,
         industry: company.industry,
         location: company.location,
@@ -1092,8 +1095,16 @@ export async function seedFortune500Companies() {
         status: "safe"
       };
       
-      await db.insert(companies).values(companyData);
-      console.log(`✓ Added ${company.name} - ${company.headcount.toLocaleString()} employees`);
+      const existingId = existingNames.get(company.name);
+      if (existingId) {
+        // Update existing company with Fortune 500 data
+        await db.update(companies).set(companyData).where(eq(companies.id, existingId));
+        console.log(`✓ Updated ${company.name} - ${company.headcount.toLocaleString()} employees`);
+      } else {
+        // Insert new company
+        await db.insert(companies).values({ id: nanoid(), ...companyData });
+        console.log(`✓ Added ${company.name} - ${company.headcount.toLocaleString()} employees`);
+      }
     }
     
     console.log(`\n🎉 Successfully seeded ${allFortune500Companies.length} Fortune 500 companies!`);
