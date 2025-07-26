@@ -56,6 +56,17 @@ class EmailService {
           pass: process.env.RESEND_API_KEY
         }
       });
+    } else if (process.env.BREVO_API_KEY) {
+      // Brevo (formerly Sendinblue) setup
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.BREVO_SMTP_USER || 'your-email@domain.com',
+          pass: process.env.BREVO_API_KEY
+        }
+      });
     } else {
       // Development mode - log to console
       console.log('📧 No email service configured. Emails will be logged to console.');

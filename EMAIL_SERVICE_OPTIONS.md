@@ -22,7 +22,21 @@ Your LayoffTracker app now supports multiple email services. Here are your optio
 - **Pros**: Quick setup if you have Gmail
 - **Cons**: Lower sending limits, may go to spam
 
-## 3. Resend (Developer-Friendly)
+## 3. Brevo (formerly Sendinblue) - RECOMMENDED!
+- **Free tier**: 300 emails/day (9,000/month) - Best free tier available
+- **Setup**:
+  1. Create account at https://brevo.com
+  2. Go to SMTP & API > SMTP in your dashboard
+  3. Copy your SMTP login and SMTP password
+  4. Add these secrets:
+     - `BREVO_API_KEY=your_smtp_password_here`
+     - `BREVO_SMTP_USER=your_brevo_login_email` (usually your signup email)
+- **Pros**: Generous free tier, excellent deliverability, European-based (GDPR compliant), reliable
+- **Cons**: Dashboard can be complex initially
+
+**✅ READY TO USE** - Your app now supports Brevo out of the box!
+
+## 4. Resend (Developer-Friendly)
 - **Free tier**: 3,000 emails/month
 - **Setup**:
   1. Create account at https://resend.com
@@ -31,7 +45,7 @@ Your LayoffTracker app now supports multiple email services. Here are your optio
 - **Pros**: Modern, great for developers, good deliverability
 - **Cons**: Newer service
 
-## 4. Custom SMTP (Any Email Provider)
+## 5. Custom SMTP (Any Email Provider)
 - **Setup**: Add these secrets:
   - `SMTP_HOST=smtp.your-provider.com`
   - `SMTP_PORT=587`
@@ -41,7 +55,7 @@ Your LayoffTracker app now supports multiple email services. Here are your optio
 - **Pros**: Works with any email provider
 - **Cons**: Requires technical setup
 
-## 5. Development Mode (Current)
+## 6. Development Mode (Current)
 - No setup required
 - Emails are logged to console instead of sent
 - Perfect for testing the magic link flow
@@ -50,9 +64,9 @@ Your LayoffTracker app now supports multiple email services. Here are your optio
 
 **For testing/development**: Use current console logging (no setup needed)
 
-**For personal projects**: Gmail (easiest setup)
+**For personal projects**: Gmail (easiest setup) or Brevo (generous free tier)
 
-**For professional apps**: SendGrid or Resend (best deliverability)
+**For professional apps**: Brevo, SendGrid, or Resend (best deliverability)
 
 **For corporate**: Custom SMTP with your company's email service
 
