@@ -14,7 +14,8 @@ import {
   TrendingDown,
   Shield,
   Users,
-  Bell
+  Bell,
+  Mail
 } from "lucide-react";
 
 interface LoginDialogProps {

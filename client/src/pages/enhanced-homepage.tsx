@@ -77,7 +77,8 @@ function Header({ user }: { user: any }) {
               </>
             ) : (
               <>
-                <a href="/login" className="text-gray-600 hover:text-gray-900">Sign In</a>
+                <a href="/magic-login" className="text-purple-600 hover:text-purple-800 font-medium">Magic Link Sign In</a>
+                <a href="/auth" className="text-gray-600 hover:text-gray-900">Other Options</a>
                 <LoginDialog>
                   <Button>Get Started</Button>
                 </LoginDialog>
