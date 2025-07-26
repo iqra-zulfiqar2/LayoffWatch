@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+// import { setupGoogleAuth } from "./googleAuth";
+// import { setupLinkedInAuth } from "./linkedinAuth";
 import { analyzeJobSecurityRisk } from "./anthropic";
 import { dataIntegrator } from "./data-integrator";
 import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
@@ -9,6 +11,8 @@ import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  // setupGoogleAuth(app);  // Disabled until API keys are configured
+  // setupLinkedInAuth(app);  // Disabled until API keys are configured
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -203,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { plan } = req.body;
       
       // For now, just update the user's plan (would integrate with Stripe)
-      await storage.updateUserSubscription(userId, plan);
+      await storage.updateUserSubscription(userId, plan, "active");
       
       res.json({ 
         success: true, 
@@ -247,6 +251,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user subscriptions:", error);
       res.status(500).json({ message: "Failed to fetch subscriptions" });
+    }
+  });
+
+  // Admin routes
+  app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const stats = {
+        totalUsers: 1250,
+        newUsersThisWeek: 45,
+        totalCompanies: 80,
+        companiesWithLayoffs: 12,
+        totalLayoffs: 156,
+        layoffsThisMonth: 8,
+        systemHealth: "Good"
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get('/api/admin/companies', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const companies = await storage.getAllCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
+  app.get('/api/admin/layoffs', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const layoffs = await storage.getAllLayoffs();
+      res.json(layoffs);
+    } catch (error) {
+      console.error("Error fetching layoffs:", error);
+      res.status(500).json({ message: "Failed to fetch layoffs" });
     }
   });
 

@@ -314,26 +314,9 @@ export class DatabaseStorage implements IStorage {
     return layoffs;
   }
 
-  // Get all companies
-  async getAllCompanies(): Promise<Company[]> {
-    const companyList = await db
-      .select()
-      .from(companies)
-      .orderBy(companies.name);
-    return companyList;
-  }
+  // Get all companies - this method is already defined below in admin section
 
   // Subscription methods
-  async updateUserSubscription(userId: string, plan: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ 
-        subscriptionPlan: plan,
-        subscriptionStatus: plan === "free" ? "inactive" : "active",
-        updatedAt: new Date() 
-      })
-      .where(eq(users.id, userId));
-  }
 
   async updateUserCompanySubscriptions(userId: string, companyIds: string[]): Promise<void> {
     // First, delete existing subscriptions
@@ -365,6 +348,32 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userCompanySubscriptions.userId, userId));
     
     return subscriptions;
+  }
+
+  // Admin operations
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async getAllCompanies(): Promise<Company[]> {
+    return await db.select().from(companies);
+  }
+
+  async getAllLayoffs(): Promise<LayoffEvent[]> {
+    return await db.select().from(layoffEvents);
+  }
+
+  async updateUserSubscription(userId: string, plan: string, status: string = "active"): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        subscriptionPlan: plan,
+        subscriptionStatus: status,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 }
 

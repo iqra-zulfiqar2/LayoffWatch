@@ -8,7 +8,7 @@ import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Header } from "../components/ui/header";
+import { Link } from "wouter";
 
 const pricingPlans = [
   {
@@ -80,9 +80,10 @@ export default function Pricing() {
   const upgradeMutation = useMutation({
     mutationFn: async (plan: string) => {
       if (!user) throw new Error("Must be logged in");
-      return await apiRequest("POST", "/api/subscription/upgrade", { plan });
+      const response = await apiRequest("POST", "/api/subscription/upgrade", { plan });
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.requiresPayment) {
         // Redirect to payment page (would integrate with Stripe)
         window.location.href = data.paymentUrl;
@@ -129,19 +130,59 @@ export default function Pricing() {
     );
   }
 
-  const currentPlan = user?.subscriptionPlan || "free";
+  const currentPlan = (user as any)?.subscriptionPlan || "free";
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-8">
+              <Link href="/">
+                <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">LayoffTracker</h1>
+              </Link>
+              <nav className="hidden md:flex items-center space-x-6">
+                <Link href="/" className="text-gray-600 hover:text-gray-900">Home</Link>
+                <Link href="/risk-scanner" className="text-gray-600 hover:text-gray-900">Risk Scanner</Link>
+                {user ? (
+                  <>
+                    <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
+                    <Link href="/analytics" className="text-gray-600 hover:text-gray-900">Analytics</Link>
+                  </>
+                ) : null}
+                <Link href="/pricing" className="text-blue-600 font-medium">Pricing</Link>
+              </nav>
+            </div>
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <Link href="/profile" className="text-gray-600 hover:text-gray-900">Profile</Link>
+                  <a href="/api/logout" className="text-gray-600 hover:text-gray-900">Sign Out</a>
+                </>
+              ) : (
+                <>
+                  <a href="/api/login" className="text-gray-600 hover:text-gray-900">Sign In</a>
+                  <Button>
+                    <a href="/api/login">Get Started</a>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6">
+            <Crown className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Get the layoff insights you need to stay ahead. Upgrade for enhanced tracking, 
             real-time notifications, and comprehensive analytics.
           </p>
@@ -152,47 +193,59 @@ export default function Pricing() {
           {pricingPlans.map((plan) => (
             <Card 
               key={plan.name} 
-              className={`relative hover-lift ${
+              className={`relative transform transition-all duration-200 hover:scale-105 border-0 shadow-xl ${
                 plan.popular 
-                  ? 'ring-2 ring-primary shadow-lg scale-105' 
-                  : 'hover:shadow-md'
-              } ${currentPlan === plan.plan ? 'ring-2 ring-success' : ''}`}
+                  ? 'bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 shadow-2xl scale-105' 
+                  : 'bg-white hover:shadow-2xl'
+              } ${currentPlan === plan.plan ? 'ring-2 ring-green-400 shadow-2xl' : ''}`}
             >
               {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
                   <Crown className="w-3 h-3 mr-1" />
                   Most Popular
                 </Badge>
               )}
               
               {currentPlan === plan.plan && (
-                <Badge className="absolute -top-3 right-4 bg-success text-success-foreground">
+                <Badge className="absolute -top-3 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
                   Current Plan
                 </Badge>
               )}
 
               <CardHeader className="text-center pb-8">
                 <div className="mb-4">
-                  {plan.name === "Free" && <Building2 className="w-12 h-12 mx-auto text-muted-foreground" />}
-                  {plan.name === "Pro" && <Zap className="w-12 h-12 mx-auto text-primary" />}
-                  {plan.name === "Premium" && <Crown className="w-12 h-12 mx-auto text-warning" />}
+                  {plan.name === "Free" && (
+                    <div className="w-12 h-12 mx-auto bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-white" />
+                    </div>
+                  )}
+                  {plan.name === "Pro" && (
+                    <div className="w-12 h-12 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-white" />
+                    </div>
+                  )}
+                  {plan.name === "Premium" && (
+                    <div className="w-12 h-12 mx-auto bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                      <Crown className="w-6 h-6 text-white" />
+                    </div>
+                  )}
                 </div>
-                <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900">{plan.name}</CardTitle>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground">/{plan.period}</span>
+                  <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-gray-600">/{plan.period}</span>
                 </div>
-                <p className="text-muted-foreground mt-2">{plan.description}</p>
+                <p className="text-gray-600 mt-2">{plan.description}</p>
               </CardHeader>
 
               <CardContent className="space-y-6">
                 {/* Features */}
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Included:</h4>
+                  <h4 className="font-semibold text-gray-900">Included:</h4>
                   {plan.features.map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
-                      <Check className="w-4 h-4 text-success flex-shrink-0" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -200,11 +253,11 @@ export default function Pricing() {
                 {/* Limitations */}
                 {plan.limitations.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-muted-foreground">Not included:</h4>
+                    <h4 className="font-semibold text-gray-600">Not included:</h4>
                     {plan.limitations.map((limitation, index) => (
                       <div key={index} className="flex items-center space-x-3">
-                        <X className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm text-muted-foreground">{limitation}</span>
+                        <X className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-600">{limitation}</span>
                       </div>
                     ))}
                   </div>
@@ -212,12 +265,13 @@ export default function Pricing() {
 
                 {/* Button */}
                 <Button
-                  className={`w-full mt-8 ${
+                  className={`w-full mt-8 transition-all duration-200 ${
                     plan.popular 
-                      ? 'gradient-bg text-primary-foreground hover:opacity-90' 
-                      : ''
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transform hover:scale-105' 
+                      : currentPlan === plan.plan
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                      : 'border-2 border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600'
                   }`}
-                  variant={currentPlan === plan.plan ? "outline" : (plan.popular ? "default" : "outline")}
                   disabled={
                     currentPlan === plan.plan || 
                     upgradeMutation.isPending ||

@@ -11,9 +11,11 @@ import Profile from "@/pages/profile";
 import Analytics from "@/pages/analytics";
 import Pricing from "@/pages/pricing";
 import Subscription from "@/pages/subscription";
+import AdminDashboard from "@/pages/admin";
 import EnhancedHomepage from "@/pages/enhanced-homepage";
 import RiskScanner from "@/pages/risk-scanner";
 import AuthLanding from "@/pages/auth-landing";
+import AuthEnhanced from "@/pages/auth-enhanced";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,11 +24,13 @@ function Router() {
     <Switch>
       <Route path="/pricing" component={Pricing} />
       <Route path="/login" component={AuthLanding} />
+      <Route path="/auth" component={AuthEnhanced} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/profile" component={Profile} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/subscription" component={Subscription} />
       <Route path="/risk-scanner" component={RiskScanner} />
+      <Route path="/admin" component={AdminDashboard} />
       {/* Main homepage - accessible to all users */}
       <Route path="/" component={EnhancedHomepage} />
       <Route component={NotFound} />
