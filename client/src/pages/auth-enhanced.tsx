@@ -71,6 +71,13 @@ const authPlans = [
 
 const authProviders = [
   {
+    name: "Magic Link",
+    description: "Sign in with Magic Link",
+    url: "/magic-login",
+    icon: "✨",
+    color: "bg-gradient-to-r from-purple-500 to-pink-500"
+  },
+  {
     name: "Replit",
     description: "Continue with Replit",
     url: "/api/login",
@@ -158,7 +165,13 @@ export default function AuthEnhanced() {
                   disabled={provider.disabled}
                   onClick={() => {
                     if (!provider.disabled) {
-                      window.location.href = provider.url;
+                      if (provider.url.startsWith('/')) {
+                        // Internal route, use router navigation
+                        window.location.href = provider.url;
+                      } else {
+                        // External API route
+                        window.location.href = provider.url;
+                      }
                     }
                   }}
                 >

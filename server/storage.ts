@@ -5,6 +5,7 @@ import {
   notifications,
   companyActivities,
   userCompanySubscriptions,
+  magicLinkTokens,
   type User,
   type UpsertUser,
   type Company,
@@ -16,6 +17,8 @@ import {
   type CompanyActivity,
   type InsertCompanyActivity,
   type UpdateUserProfile,
+  type InsertMagicLinkToken,
+  type MagicLinkToken,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, ilike, desc, and, isNull, gte, lte, sql, count } from "drizzle-orm";
@@ -62,6 +65,12 @@ export interface IStorage {
   updateUserSubscription(userId: string, plan: string): Promise<void>;
   updateUserCompanySubscriptions(userId: string, companyIds: string[]): Promise<void>;
   getUserCompanySubscriptions(userId: string): Promise<any[]>;
+  
+  // Magic link authentication
+  createMagicLinkToken(token: InsertMagicLinkToken): Promise<MagicLinkToken>;
+  getMagicLinkToken(token: string): Promise<MagicLinkToken | undefined>;
+  useMagicLinkToken(token: string): Promise<void>;
+  getUserByEmail(email: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -373,6 +382,38 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(users.id, userId))
       .returning();
+    return user;
+  }
+
+  // Magic link authentication methods
+  async createMagicLinkToken(tokenData: InsertMagicLinkToken): Promise<MagicLinkToken> {
+    const [token] = await db
+      .insert(magicLinkTokens)
+      .values(tokenData)
+      .returning();
+    return token;
+  }
+
+  async getMagicLinkToken(token: string): Promise<MagicLinkToken | undefined> {
+    const [magicToken] = await db
+      .select()
+      .from(magicLinkTokens)
+      .where(eq(magicLinkTokens.token, token));
+    return magicToken;
+  }
+
+  async useMagicLinkToken(token: string): Promise<void> {
+    await db
+      .update(magicLinkTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(magicLinkTokens.token, token));
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()));
     return user;
   }
 }

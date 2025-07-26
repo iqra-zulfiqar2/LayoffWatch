@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupMagicAuth, isMagicAuthenticated } from "./magicAuth";
 // import { setupGoogleAuth } from "./googleAuth";
 // import { setupLinkedInAuth } from "./linkedinAuth";
 import { analyzeJobSecurityRisk } from "./anthropic";
@@ -11,6 +12,7 @@ import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  setupMagicAuth(app);
   // setupGoogleAuth(app);  // Disabled until API keys are configured
   // setupLinkedInAuth(app);  // Disabled until API keys are configured
 

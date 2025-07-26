@@ -16,6 +16,7 @@ import EnhancedHomepage from "@/pages/enhanced-homepage";
 import RiskScanner from "@/pages/risk-scanner";
 import AuthLanding from "@/pages/auth-landing";
 import AuthEnhanced from "@/pages/auth-enhanced";
+import MagicLogin from "@/pages/magic-login";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/login" component={AuthLanding} />
       <Route path="/auth" component={AuthEnhanced} />
+      <Route path="/magic-login" component={MagicLogin} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/profile" component={Profile} />
       <Route path="/analytics" component={Analytics} />
