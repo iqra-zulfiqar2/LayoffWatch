@@ -71,6 +71,16 @@ export interface IStorage {
   getMagicLinkToken(token: string): Promise<MagicLinkToken | undefined>;
   useMagicLinkToken(token: string): Promise<void>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  
+  // Admin operations
+  getCompanyCount(): Promise<number>;
+  getUserCount(): Promise<number>;
+  getLayoffCount(): Promise<number>;
+  getActiveMonitoringCount(): Promise<number>;
+  getAllUsers(): Promise<User[]>;
+  updateCompany(id: string, updates: Partial<Company>): Promise<Company>;
+  deleteCompany(id: string): Promise<void>;
+  getAllLayoffs(): Promise<LayoffEvent[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -415,6 +425,46 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(eq(users.email, email.toLowerCase()));
     return user;
+  }
+
+  // Admin operations implementation
+  async getCompanyCount(): Promise<number> {
+    const result = await db.select({ count: count() }).from(companies);
+    return result[0]?.count || 0;
+  }
+
+  async getUserCount(): Promise<number> {
+    const result = await db.select({ count: count() }).from(users);
+    return result[0]?.count || 0;
+  }
+
+  async getLayoffCount(): Promise<number> {
+    const result = await db.select({ count: count() }).from(layoffEvents);
+    return result[0]?.count || 0;
+  }
+
+  async getActiveMonitoringCount(): Promise<number> {
+    const result = await db.select({ count: count() })
+      .from(companies)
+      .where(eq(companies.status, 'monitoring'));
+    return result[0]?.count || 0;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateCompany(id: string, updates: Partial<Company>): Promise<Company> {
+    const [company] = await db
+      .update(companies)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(companies.id, id))
+      .returning();
+    return company;
+  }
+
+  async deleteCompany(id: string): Promise<void> {
+    await db.delete(companies).where(eq(companies.id, id));
   }
 }
 

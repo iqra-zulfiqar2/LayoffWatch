@@ -401,6 +401,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes - protected by admin role check
+  const requireAdmin = async (req: any, res: any, next: any) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const userId = req.user?.claims?.sub || req.session?.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      req.adminUser = user;
+      next();
+    } catch (error) {
+      console.error("Admin auth error:", error);
+      res.status(500).json({ message: "Authentication error" });
+    }
+  };
+
+  // Admin dashboard stats
+  app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+    try {
+      const totalCompanies = await storage.getCompanyCount();
+      const totalUsers = await storage.getUserCount();
+      const totalLayoffs = await storage.getLayoffCount();
+      const activeMonitoring = await storage.getActiveMonitoringCount();
+      
+      res.json({
+        totalCompanies,
+        totalUsers,
+        totalLayoffs,
+        activeMonitoring,
+        newCompaniesThisMonth: 5, // Mock data - implement actual query
+        newUsersThisMonth: 23,
+        newLayoffsThisMonth: 8,
+        recentActivity: [
+          { type: 'layoff', description: 'New layoff reported at Tech Corp', timestamp: '2 hours ago' },
+          { type: 'company', description: 'Added new company: StartupXYZ', timestamp: '1 day ago' },
+          { type: 'user', description: 'New user registration', timestamp: '2 days ago' },
+        ]
+      });
+    } catch (error) {
+      console.error("Admin stats error:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // Admin company management
+  app.get('/api/admin/companies', requireAdmin, async (req, res) => {
+    try {
+      const companies = await storage.getAllCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Admin companies error:", error);
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
+  app.post('/api/admin/companies', requireAdmin, async (req, res) => {
+    try {
+      const company = await storage.createCompany(req.body);
+      res.json(company);
+    } catch (error) {
+      console.error("Create company error:", error);
+      res.status(500).json({ message: "Failed to create company" });
+    }
+  });
+
+  app.put('/api/admin/companies/:id', requireAdmin, async (req, res) => {
+    try {
+      const company = await storage.updateCompany(req.params.id, req.body);
+      res.json(company);
+    } catch (error) {
+      console.error("Update company error:", error);
+      res.status(500).json({ message: "Failed to update company" });
+    }
+  });
+
+  app.delete('/api/admin/companies/:id', requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteCompany(req.params.id);
+      res.json({ message: "Company deleted successfully" });
+    } catch (error) {
+      console.error("Delete company error:", error);
+      res.status(500).json({ message: "Failed to delete company" });
+    }
+  });
+
+  // Admin layoff management
+  app.get('/api/admin/layoffs', requireAdmin, async (req, res) => {
+    try {
+      const layoffs = await storage.getAllLayoffs();
+      res.json(layoffs);
+    } catch (error) {
+      console.error("Admin layoffs error:", error);
+      res.status(500).json({ message: "Failed to fetch layoffs" });
+    }
+  });
+
+  app.post('/api/admin/layoffs', requireAdmin, async (req, res) => {
+    try {
+      const layoff = await storage.createLayoffEvent(req.body);
+      res.json(layoff);
+    } catch (error) {
+      console.error("Create layoff error:", error);
+      res.status(500).json({ message: "Failed to create layoff event" });
+    }
+  });
+
+  // Admin user management
+  app.get('/api/admin/users', requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Admin users error:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
+    try {
+      const user = await storage.updateUserProfile(req.params.id, req.body);
+      res.json(user);
+    } catch (error) {
+      console.error("Update user error:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Development endpoint to promote current user to admin (remove in production)
+  app.post('/api/promote-to-admin', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const userId = req.user?.claims?.sub || req.session?.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+      
+      const user = await storage.updateUserProfile(userId, { role: 'admin' });
+      res.json({ message: "User promoted to admin successfully", user });
+    } catch (error) {
+      console.error("Promote to admin error:", error);
+      res.status(500).json({ message: "Failed to promote user to admin" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
