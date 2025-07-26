@@ -60,8 +60,9 @@ export function setupMagicAuth(app: Express) {
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const magicLink = `${baseUrl}/api/auth/magic-link/verify?token=${token}`;
       
-      // Send email (placeholder implementation)
-      const emailSent = await sendMagicLinkEmail(email, magicLink);
+      // Send email using email service
+      const { emailService } = await import('./emailService');
+      const emailSent = await emailService.sendMagicLink(email, magicLink);
       
       if (emailSent) {
         res.json({ 
