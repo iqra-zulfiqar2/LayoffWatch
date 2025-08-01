@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { 
-  ArrowLeft, 
   Linkedin, 
   Search, 
   Users, 
@@ -21,6 +20,7 @@ import {
   Share2,
   Sparkles
 } from "lucide-react";
+import GlobalHeader from "@/components/GlobalHeader";
 
 const optimizationAreas = [
   {
@@ -102,37 +102,8 @@ export default function LinkedInOptimizer() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Tools</span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white">
-                  <Linkedin className="w-5 h-5" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">LinkedIn Optimizer</h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" className="hidden sm:inline-flex">
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </Button>
-              <Link href="/auth">
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-400">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <GlobalHeader />
 
       {/* Tool Description */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-white/50">

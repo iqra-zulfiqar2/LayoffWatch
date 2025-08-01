@@ -12,7 +12,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
-  ArrowLeft, 
   FileText, 
   Download, 
   Eye, 
@@ -23,6 +22,7 @@ import {
   Star,
   Zap
 } from "lucide-react";
+import GlobalHeader from "@/components/GlobalHeader";
 
 const resumeSchema = z.object({
   personalInfo: z.object({
@@ -141,40 +141,8 @@ export default function ResumeBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Tools</span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">Resume Builder</h1>
-                <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                  <Star className="w-3 h-3 mr-1" />
-                  Popular
-                </Badge>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" className="hidden sm:inline-flex">
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </Button>
-              <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <GlobalHeader />
 
       {/* Tool Description */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-white/50">

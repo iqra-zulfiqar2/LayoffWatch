@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  ArrowLeft, 
   Mail, 
   Sparkles, 
   Copy, 
@@ -18,6 +17,7 @@ import {
   FileText,
   Wand2
 } from "lucide-react";
+import GlobalHeader from "@/components/GlobalHeader";
 
 export default function CoverLetterGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,41 +60,8 @@ Best regards,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Tools</span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-teal-500 text-white">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">Cover Letter Generator</h1>
-                <Badge className="bg-gradient-to-r from-green-500 to-teal-500 text-white">
-                  <Star className="w-3 h-3 mr-1" />
-                  Popular
-                </Badge>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" className="hidden sm:inline-flex">
-                <FileText className="w-4 h-4 mr-2" />
-                Templates
-              </Button>
-              <Link href="/auth">
-                <Button className="bg-gradient-to-r from-green-500 to-teal-500">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <GlobalHeader />
 
       {/* Tool Description */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-white/50">
@@ -106,15 +73,15 @@ Best regards,
             Create compelling cover letters that perfectly match job descriptions and company culture using AI.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
               <Target className="w-3 h-3 mr-1" />
               Job Matching
             </Badge>
-            <Badge variant="secondary" className="bg-teal-100 text-teal-800">
+            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
               <Sparkles className="w-3 h-3 mr-1" />
               AI Powered
             </Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            <Badge variant="secondary" className="bg-indigo-100 text-indigo-800">
               <Wand2 className="w-3 h-3 mr-1" />
               Personalized
             </Badge>
@@ -192,7 +159,7 @@ Best regards,
             <Button
               onClick={generateCoverLetter}
               disabled={isGenerating || !jobTitle || !companyName}
-              className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-lg py-6"
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg py-6"
             >
               {isGenerating ? (
                 <>

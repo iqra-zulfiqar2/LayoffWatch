@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  ArrowLeft, 
   Users, 
   Play, 
   Pause, 
@@ -18,6 +17,7 @@ import {
   TrendingUp,
   Star
 } from "lucide-react";
+import GlobalHeader from "@/components/GlobalHeader";
 
 const questionCategories = [
   { id: "behavioral", name: "Behavioral", count: 50 },
@@ -79,37 +79,8 @@ export default function InterviewPreparation() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Tools</span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                  <Users className="w-5 h-5" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">Interview Preparation</h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" className="hidden sm:inline-flex">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Progress
-              </Button>
-              <Link href="/auth">
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <GlobalHeader />
 
       {/* Tool Description */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-white/50">
@@ -197,7 +168,7 @@ export default function InterviewPreparation() {
                 <Button 
                   onClick={startInterview}
                   disabled={isRecording}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
                   <Play className="w-4 h-4 mr-2" />
                   Start Mock Interview

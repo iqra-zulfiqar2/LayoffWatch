@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ArrowLeft, 
   MessageSquare, 
   Copy, 
   Send, 
@@ -21,6 +20,7 @@ import {
   CheckCircle,
   Clock
 } from "lucide-react";
+import GlobalHeader from "@/components/GlobalHeader";
 
 const messageTypes = [
   { id: "linkedin-dm", name: "LinkedIn DM", icon: Linkedin },
@@ -130,37 +130,8 @@ ${yourName || "[Your Name]"}`;
   const MessageTypeIcon = messageTypes.find(type => type.id === activeTab)?.icon || MessageSquare;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Tools</span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-                  <MessageSquare className="w-5 h-5" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">Recruiter Outreach Script Generator</h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" className="hidden sm:inline-flex">
-                <Clock className="w-4 h-4 mr-2" />
-                Templates
-              </Button>
-              <Link href="/auth">
-                <Button className="bg-gradient-to-r from-indigo-500 to-purple-600">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <GlobalHeader />
 
       {/* Tool Description */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-white/50">
@@ -321,7 +292,7 @@ ${yourName || "[Your Name]"}`;
                 <Button
                   onClick={generateMessage}
                   disabled={isGenerating || !yourName || !recruiterName}
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-lg py-6"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg py-6"
                 >
                   {isGenerating ? (
                     <>

@@ -13,8 +13,10 @@ import {
   ArrowRight,
   Sparkles,
   Star,
-  Crown
+  Crown,
+  Shield
 } from "lucide-react";
+import GlobalHeader from "@/components/GlobalHeader";
 
 const tools = [
   {
@@ -24,7 +26,7 @@ const tools = [
     icon: TrendingDown,
     route: "/tools/layoff-tracker",
     popular: true,
-    gradient: "from-red-500 to-orange-500",
+    gradient: "from-blue-400 to-blue-600",
     features: ["Real-time monitoring", "Company analytics", "Notification alerts", "Historical data"]
   },
   {
@@ -34,7 +36,7 @@ const tools = [
     icon: FileText,
     route: "/tools/resume-builder",
     popular: true,
-    gradient: "from-blue-500 to-purple-500",
+    gradient: "from-purple-400 to-purple-600",
     features: ["ATS optimization", "AI assistance", "Professional templates", "Export options"]
   },
   {
@@ -44,7 +46,7 @@ const tools = [
     icon: Mail,
     route: "/tools/cover-letter-generator",
     popular: true,
-    gradient: "from-green-500 to-teal-500",
+    gradient: "from-indigo-400 to-indigo-600",
     features: ["Personalized content", "Job matching", "Company research", "Multiple formats"]
   },
   {
@@ -54,7 +56,7 @@ const tools = [
     icon: Users,
     route: "/tools/interview-preparation",
     popular: false,
-    gradient: "from-purple-500 to-pink-500",
+    gradient: "from-blue-500 to-purple-500",
     features: ["Mock interviews", "Industry-specific", "Performance feedback", "Question bank"]
   },
   {
@@ -64,7 +66,7 @@ const tools = [
     icon: Linkedin,
     route: "/tools/linkedin-optimizer",
     popular: false,
-    gradient: "from-blue-600 to-blue-400",
+    gradient: "from-blue-500 to-indigo-500",
     features: ["Profile optimization", "SEO enhancement", "Network analysis", "Content suggestions"]
   },
   {
@@ -74,7 +76,7 @@ const tools = [
     icon: MessageSquare,
     route: "/tools/recruiter-outreach",
     popular: false,
-    gradient: "from-indigo-500 to-purple-600",
+    gradient: "from-indigo-500 to-purple-500",
     features: ["Personalized scripts", "Multi-platform", "Follow-up templates", "Success tracking"]
   }
 ];
@@ -83,61 +85,40 @@ export default function CareerToolsHub() {
   const [hoveredTool, setHoveredTool] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <Link href="/">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent cursor-pointer">
-                  CareerTools Pro
-                </h1>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/pricing">
-                <Button variant="outline" className="hidden sm:inline-flex">
-                  Pricing
-                </Button>
-              </Link>
-              <Link href="/auth">
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <GlobalHeader />
 
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center mb-6">
-            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 text-sm">
-              <Sparkles className="w-4 h-4 mr-2" />
-              6 Powerful Career Tools
+            <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 text-sm">
+              <Shield className="w-4 h-4 mr-2" />
+              6 Powerful Career Protection Tools
             </Badge>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Your Complete
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent block">
-              Career Toolkit
+          <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
+            Stay
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {" "}LayOff Proof
             </span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            From tracking layoffs to building resumes, preparing for interviews to optimizing LinkedIn - 
-            everything you need to advance your career in one powerful platform.
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Protect your career with AI-powered tools that help you stay ahead of layoffs, 
+            build stronger applications, and land your next opportunity faster.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-8 py-6">
-              Get Started Free
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-              View All Tools
-            </Button>
+            <Link href="/magic-login">
+              <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-6">
+                Get Started Free
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/pricing">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-gray-200 hover:bg-gray-50">
+                View Pricing
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -205,7 +186,7 @@ export default function CareerToolsHub() {
                     
                     <Link href={tool.route}>
                       <Button 
-                        className={`w-full bg-gradient-to-r ${tool.gradient} hover:opacity-90 transition-all duration-300`}
+                        className={`w-full bg-gradient-to-r ${tool.gradient} hover:opacity-90 transition-all duration-300 text-white shadow-md`}
                         size="lg"
                       >
                         Try Now
@@ -221,22 +202,26 @@ export default function CareerToolsHub() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-600 to-pink-600">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <Crown className="w-16 h-16 mx-auto mb-6" />
+          <Shield className="w-16 h-16 mx-auto mb-6" />
           <h2 className="text-4xl font-bold mb-6">
-            Ready to Accelerate Your Career?
+            Ready to Protect Your Career?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join thousands of professionals who are already using our tools to land their dream jobs
+            Join thousands of professionals who are already using LayOff Proof to secure their career future
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-6">
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-6">
-              View Pricing
-            </Button>
+            <Link href="/magic-login">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6">
+                Start Free Trial
+              </Button>
+            </Link>
+            <Link href="/pricing">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-6">
+                View Pricing
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -246,11 +231,11 @@ export default function CareerToolsHub() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-                CareerTools Pro
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
+                LayOff Proof
               </h3>
               <p className="text-gray-400">
-                Your complete career advancement platform with AI-powered tools for every stage of your journey.
+                Your complete career protection platform with AI-powered tools to secure your professional future.
               </p>
             </div>
             <div>
@@ -283,7 +268,7 @@ export default function CareerToolsHub() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 CareerTools Pro. All rights reserved.</p>
+            <p>&copy; 2025 LayOff Proof. All rights reserved.</p>
           </div>
         </div>
       </footer>
