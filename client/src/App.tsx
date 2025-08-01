@@ -17,6 +17,13 @@ import RiskScanner from "@/pages/risk-scanner";
 import AuthLanding from "@/pages/auth-landing";
 import AuthEnhanced from "@/pages/auth-enhanced";
 import MagicLogin from "@/pages/magic-login";
+import CareerToolsHub from "@/pages/career-tools-hub";
+import LayoffTracker from "@/pages/layoff-tracker";
+import ResumeBuilder from "@/pages/resume-builder";
+import CoverLetterGenerator from "@/pages/cover-letter-generator";
+import InterviewPreparation from "@/pages/interview-preparation";
+import LinkedInOptimizer from "@/pages/linkedin-optimizer";
+import RecruiterOutreach from "@/pages/recruiter-outreach";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -33,8 +40,18 @@ function Router() {
       <Route path="/subscription" component={Subscription} />
       <Route path="/risk-scanner" component={RiskScanner} />
       <Route path="/admin" component={AdminDashboard} />
+      
+      {/* Career Tools */}
+      <Route path="/tools" component={CareerToolsHub} />
+      <Route path="/tools/layoff-tracker" component={LayoffTracker} />
+      <Route path="/tools/resume-builder" component={ResumeBuilder} />
+      <Route path="/tools/cover-letter-generator" component={CoverLetterGenerator} />
+      <Route path="/tools/interview-preparation" component={InterviewPreparation} />
+      <Route path="/tools/linkedin-optimizer" component={LinkedInOptimizer} />
+      <Route path="/tools/recruiter-outreach" component={RecruiterOutreach} />
+      
       {/* Main homepage - accessible to all users */}
-      <Route path="/" component={EnhancedHomepage} />
+      <Route path="/" component={CareerToolsHub} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,8 +1,8 @@
-# LayoffTracker - Replit Development Guide
+# CareerTools Pro - Replit Development Guide
 
 ## Overview
 
-This is a full-stack web application called "LayoffTracker" that helps users monitor layoff activities at companies. The application provides real-time tracking, notifications, analytics, and user profile management. Users can select companies to track, set notification preferences (email/SMS), and view comprehensive historical layoff data across industries, states, and job titles. It's built with a modern tech stack featuring React frontend, Express backend, PostgreSQL database, and Replit authentication.
+This is a comprehensive career advancement platform called "CareerTools Pro" featuring 6 distinct AI-powered tools to help professionals navigate their career journey. The platform includes: Layoff Tracker (real-time layoff monitoring), Resume Builder (ATS-optimized resume creation), Cover Letter Generator (personalized cover letters), Interview Preparation (AI mock interviews), LinkedIn Optimizer (profile optimization), and Recruiter Outreach Script Generator (personalized outreach messages). Built with a modern tech stack featuring React frontend, Express backend, PostgreSQL database, and multi-provider authentication.
 
 ## User Preferences
 
@@ -59,6 +59,16 @@ Preferred communication style: Simple, everyday language.
 ✓ Added admin overview page with system statistics, user management, and recent activity tracking
 ✓ Established tabbed admin interface for managing companies, layoffs, users, content, and settings
 ✓ Integrated React Query with proper cache invalidation for real-time admin data updates
+✓ Transformed website into comprehensive 6-tool career platform called "CareerTools Pro"
+✓ Created main Career Tools Hub with beautiful gradient-based tool cards and navigation
+✓ Built complete Resume Builder with ATS optimization, AI assistance, and professional templates
+✓ Developed Cover Letter Generator with job matching and personalized AI-generated content
+✓ Implemented Interview Preparation tool with mock interviews and performance tracking
+✓ Created LinkedIn Optimizer with profile analysis, headline generation, and SEO enhancement
+✓ Built Recruiter Outreach Script Generator for LinkedIn DMs, emails, and referral requests
+✓ Moved original layoff tracking functionality to dedicated tool within the platform
+✓ Updated routing architecture to support tool-based navigation structure
+✓ Maintained existing authentication, admin, and backend functionality across all tools
 
 ## System Architecture
 
