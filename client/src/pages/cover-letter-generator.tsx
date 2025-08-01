@@ -21,27 +21,80 @@ import GlobalHeader from "@/components/GlobalHeader";
 
 export default function CoverLetterGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExtractingJob, setIsExtractingJob] = useState(false);
   const [generatedLetter, setGeneratedLetter] = useState("");
+  const [jobUrl, setJobUrl] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [extractedJobData, setExtractedJobData] = useState<any>(null);
   const [tone, setTone] = useState("professional");
   const [experience, setExperience] = useState("");
 
+  const extractJobData = async () => {
+    if (!jobUrl.trim()) return;
+    
+    setIsExtractingJob(true);
+    try {
+      const response = await fetch('/api/extract-job-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ jobUrl: jobUrl.trim() }),
+      });
+      
+      if (response.ok) {
+        const jobData = await response.json();
+        setExtractedJobData(jobData);
+        setJobTitle(jobData.title || "");
+        setCompanyName(jobData.company || "");
+        setJobDescription(jobData.description || "");
+      } else {
+        console.error('Failed to extract job data');
+      }
+    } catch (error) {
+      console.error('Error extracting job data:', error);
+    } finally {
+      setIsExtractingJob(false);
+    }
+  };
+
   const generateCoverLetter = async () => {
     setIsGenerating(true);
-    // Simulate AI generation
-    setTimeout(() => {
-      const sampleLetter = `Dear Hiring Manager,
+    
+    try {
+      const response = await fetch('/api/generate-cover-letter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobTitle,
+          companyName,
+          jobDescription,
+          extractedJobData,
+          experience,
+          tone,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedLetter(data.coverLetter);
+      } else {
+        // Fallback to sample generation
+        const sampleLetter = `Dear Hiring Manager,
 
 I am excited to apply for the ${jobTitle || "[Position]"} role at ${companyName || "[Company]"}. With my background in ${experience || "relevant field"}, I am confident that I can contribute meaningfully to your team.
 
 ${jobDescription ? `Having reviewed the job description, I am particularly drawn to the opportunity to ${jobDescription.slice(0, 100)}...` : "I am impressed by your company's commitment to innovation and excellence."}
 
-In my previous roles, I have developed strong skills in:
+${extractedJobData?.requirements ? `I believe my experience aligns well with your requirements, particularly:
+${extractedJobData.requirements.slice(0, 3).map((req: string) => `• ${req}`).join('\n')}` : `In my previous roles, I have developed strong skills in:
 • Problem-solving and analytical thinking
 • Team collaboration and communication
-• ${experience || "Technical expertise"}
+• ${experience || "Technical expertise"}`}
 
 I am eager to bring my passion and expertise to ${companyName || "your organization"} and would welcome the opportunity to discuss how my background aligns with your needs.
 
@@ -49,10 +102,14 @@ Thank you for your consideration.
 
 Best regards,
 [Your Name]`;
-      
-      setGeneratedLetter(sampleLetter);
+        
+        setGeneratedLetter(sampleLetter);
+      }
+    } catch (error) {
+      console.error('Error generating cover letter:', error);
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const copyToClipboard = () => {
@@ -96,7 +153,50 @@ Best regards,
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Wand2 className="w-5 h-5 mr-2 text-green-500" />
+                  <Wand2 className="w-5 h-5 mr-2 text-blue-500" />
+                  Job URL (Optional)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Job Posting URL</label>
+                  <div className="flex space-x-2 mt-1">
+                    <Input
+                      placeholder="https://jobs.example.com/software-engineer"
+                      value={jobUrl}
+                      onChange={(e) => setJobUrl(e.target.value)}
+                    />
+                    <Button 
+                      onClick={extractJobData}
+                      disabled={isExtractingJob || !jobUrl.trim()}
+                      variant="outline"
+                    >
+                      {isExtractingJob ? "Extracting..." : "Extract"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    We'll automatically extract job details from LinkedIn, Indeed, and other job sites
+                  </p>
+                </div>
+                
+                {extractedJobData && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      <span className="text-sm font-medium text-green-800">Job data extracted successfully!</span>
+                    </div>
+                    <div className="text-xs text-green-700">
+                      Found: {extractedJobData.title} at {extractedJobData.company}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Wand2 className="w-5 h-5 mr-2 text-purple-500" />
                   Job Information
                 </CardTitle>
               </CardHeader>
@@ -144,15 +244,21 @@ Best regards,
 
             <Card>
               <CardHeader>
-                <CardTitle>Job Description (Optional)</CardTitle>
+                <CardTitle>Job Description {extractedJobData ? "(Auto-filled)" : "(Optional)"}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  placeholder="Paste the job description here to generate a more targeted cover letter..."
+                  placeholder={extractedJobData ? "Job description extracted from URL..." : "Paste the job description here to generate a more targeted cover letter..."}
                   rows={6}
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
+                  className={extractedJobData ? "bg-blue-50" : ""}
                 />
+                {extractedJobData && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    💡 Description was automatically extracted from the job URL. You can edit it above.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -230,6 +336,43 @@ Best regards,
                     <FileText className="w-4 h-4 mr-2" />
                     Use Different Template
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Job Data Preview */}
+            {extractedJobData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-green-600" />
+                    Extracted Job Data
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-700">Position & Company</h4>
+                    <p className="text-sm">{extractedJobData.title} at {extractedJobData.company}</p>
+                    <p className="text-xs text-gray-500">{extractedJobData.location} • {extractedJobData.type}</p>
+                  </div>
+                  
+                  {extractedJobData.salary && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-700">Salary Range</h4>
+                      <p className="text-sm">{extractedJobData.salary}</p>
+                    </div>
+                  )}
+                  
+                  {extractedJobData.requirements && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-700">Key Requirements</h4>
+                      <ul className="text-sm space-y-1">
+                        {extractedJobData.requirements.slice(0, 3).map((req: string, index: number) => (
+                          <li key={index} className="text-xs text-gray-600">• {req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

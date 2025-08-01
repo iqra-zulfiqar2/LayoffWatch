@@ -557,6 +557,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Job data extraction endpoint
+  app.post("/api/extract-job-data", async (req, res) => {
+    try {
+      const { jobUrl } = req.body;
+      
+      if (!jobUrl) {
+        return res.status(400).json({ error: "Job URL is required" });
+      }
+
+      // For now, return mock data - in production, this would scrape the job page
+      // You could integrate with services like ScrapingBee, Puppeteer, or Cheerio
+      const mockJobData = {
+        title: "Senior Software Engineer",
+        company: "TechCorp Inc.",
+        location: "San Francisco, CA",
+        description: `We are seeking a Senior Software Engineer to join our growing team. You will be responsible for developing scalable web applications using React, Node.js, and AWS services.
+
+Key Responsibilities:
+• Design and implement new features for our web platform
+• Collaborate with cross-functional teams to deliver high-quality software
+• Mentor junior developers and conduct code reviews
+• Optimize application performance and scalability
+
+Requirements:
+• 5+ years of experience in software development
+• Strong proficiency in JavaScript, React, and Node.js
+• Experience with AWS services and cloud architecture
+• Bachelor's degree in Computer Science or related field`,
+        requirements: [
+          "5+ years of experience in software development",
+          "Strong proficiency in JavaScript, React, and Node.js",
+          "Experience with AWS services and cloud architecture",
+          "Bachelor's degree in Computer Science or related field"
+        ],
+        benefits: [
+          "Competitive salary and equity package",
+          "Comprehensive health insurance",
+          "Flexible work arrangements",
+          "Professional development budget"
+        ],
+        salary: "$120,000 - $160,000",
+        type: "Full-time"
+      };
+
+      res.json(mockJobData);
+    } catch (error) {
+      console.error("Error extracting job data:", error);
+      res.status(500).json({ error: "Failed to extract job data" });
+    }
+  });
+
+  // AI-powered cover letter generation endpoint
+  app.post("/api/generate-cover-letter", async (req, res) => {
+    try {
+      const { jobTitle, companyName, jobDescription, extractedJobData, experience, tone } = req.body;
+      
+      // For now, return a more sophisticated template
+      // In production, this would use AI services like OpenAI or Anthropic
+      const coverLetter = `Dear Hiring Manager,
+
+I am writing to express my strong interest in the ${jobTitle || "[Position]"} position at ${companyName || "[Company]"}. ${experience ? `With ${experience}, I am` : "I am"} excited about the opportunity to contribute to your team's success.
+
+${extractedJobData ? `After reviewing your job posting, I am particularly drawn to your focus on ${extractedJobData.requirements?.[0]?.toLowerCase() || "technical excellence"}. My background aligns well with your requirements:` : `Having reviewed the position details, I believe my background aligns well with your needs:`}
+
+${extractedJobData?.requirements ? extractedJobData.requirements.slice(0, 3).map((req: string, index: number) => `• ${req}${index < 2 ? '\n' : ''}`).join('') : `• Strong technical expertise in ${experience || "relevant technologies"}
+• Proven track record of delivering high-quality solutions
+• Excellent collaboration and communication skills`}
+
+${extractedJobData?.description ? `I am particularly excited about the opportunity to ${extractedJobData.description.includes('develop') ? 'contribute to your development efforts' : 'join your innovative team'} and help drive ${companyName || "your organization"}'s continued growth.` : `I am eager to bring my passion and expertise to ${companyName || "your organization"} and contribute to your team's success.`}
+
+${tone === 'enthusiastic' ? 'I would be thrilled to discuss how my background and enthusiasm can contribute to your team!' : tone === 'formal' ? 'I would welcome the opportunity to discuss my qualifications in greater detail.' : 'I look forward to the opportunity to discuss how my experience aligns with your needs.'}
+
+Thank you for your consideration.
+
+${tone === 'formal' ? 'Respectfully,' : 'Best regards,'}
+[Your Name]`;
+
+      res.json({ coverLetter });
+    } catch (error) {
+      console.error("Error generating cover letter:", error);
+      res.status(500).json({ error: "Failed to generate cover letter" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
