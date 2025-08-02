@@ -115,26 +115,26 @@ export default function GlobalHeader() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <div className="relative group">
-              <button className="flex items-center text-gray-700 hover:text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-blue-50 transition-all duration-200">
+              <button className="flex items-center text-white bg-purple-500 hover:bg-purple-600 font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm">
                 AI Tools
                 <ChevronDown className="w-4 h-4 ml-1" />
               </button>
               
               {/* Tools Dropdown */}
-              <div className="absolute top-full left-0 mt-1 w-96 bg-white rounded-lg shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+              <div className="absolute top-full left-0 mt-2 w-[480px] bg-white rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
                 <div className="p-6">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {tools.map((tool) => {
                       const IconComponent = tool.icon;
                       return (
                         <Link key={tool.id} href={tool.href}>
-                          <div className="flex items-start p-3 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
-                            <div className="p-2 rounded-lg bg-blue-100 text-blue-600 mr-3 flex-shrink-0">
-                              <IconComponent className="w-4 h-4" />
+                          <div className="group/item flex items-start p-4 rounded-lg hover:bg-blue-50 transition-all duration-200 cursor-pointer">
+                            <div className="p-2 rounded-lg bg-blue-100 text-blue-600 mr-3 flex-shrink-0 group-hover/item:bg-blue-200 transition-colors">
+                              <IconComponent className="w-5 h-5" />
                             </div>
-                            <div className="min-w-0">
-                              <h3 className="font-medium text-gray-900 text-sm leading-tight">{tool.name}</h3>
-                              <p className="text-xs text-gray-500 mt-1 leading-tight">{tool.description}</p>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-gray-900 text-sm mb-1 group-hover/item:text-blue-700 transition-colors">{tool.name}</h3>
+                              <p className="text-xs text-gray-600 leading-relaxed">{tool.description}</p>
                             </div>
                           </div>
                         </Link>
