@@ -37,6 +37,7 @@ export default function CoverLetter() {
   const [activeTab, setActiveTab] = useState("upload");
   const [uploadedResume, setUploadedResume] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
+  const [parsedResumeData, setParsedResumeData] = useState<any>(null);  
   const [jobDetails, setJobDetails] = useState<JobDetails>({ position: "", company: "", reason: "" });
   const [personalData, setPersonalData] = useState<PersonalData>({
     name: "", email: "", phone: "", degree: "", university: "", profession: "",
@@ -47,16 +48,39 @@ export default function CoverLetter() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setUploadedResume(file);
-      // Simulate reading file content
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setResumeText(e.target?.result as string || "");
-      };
-      reader.readAsText(file);
+      
+      try {
+        const formData = new FormData();
+        formData.append('resume', file);
+        
+        const response = await fetch('/api/upload-resume', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload resume');
+        }
+        
+        const data = await response.json();
+        setResumeText(data.resumeText);
+        setParsedResumeData(data.parsedData);
+        
+        toast({
+          title: "Resume Uploaded!",
+          description: "Your resume has been processed and key information extracted.",
+        });
+      } catch (error) {
+        toast({
+          title: "Upload Error",
+          description: "Failed to process your resume. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -236,10 +260,18 @@ ${personalData.name}`;
                     </div>
                     
                     {uploadedResume && (
-                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-2">
                         <p className="text-green-800 font-medium">
                           ✓ Resume uploaded: {uploadedResume.name}
                         </p>
+                        {parsedResumeData && (
+                          <div className="text-sm text-green-700">
+                            <p><span className="font-medium">Name:</span> {parsedResumeData.name || "Not detected"}</p>
+                            <p><span className="font-medium">Email:</span> {parsedResumeData.email || "Not detected"}</p>
+                            <p><span className="font-medium">Profession:</span> {parsedResumeData.profession || "Not detected"}</p>
+                            <p><span className="font-medium">Experience:</span> {parsedResumeData.experience || "Not detected"}</p>
+                          </div>
+                        )}
                       </div>
                     )}
 

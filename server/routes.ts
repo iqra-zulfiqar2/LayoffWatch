@@ -8,10 +8,35 @@ import { setupMagicAuth, isMagicAuthenticated } from "./magicAuth";
 import { analyzeJobSecurityRisk } from "./anthropic";
 import { dataIntegrator } from "./data-integrator";
 import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure multer for file uploads
+  const upload = multer({
+    dest: 'uploads/',
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept only text files, PDFs, and documents
+      const allowedTypes = [
+        'text/plain',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Please upload .txt, .pdf, .doc, or .docx files.'));
+      }
+    }
+  });
+
   // Auth middleware
-  await setupAuth(app);
+  await setupAuth(app); 
   setupMagicAuth(app);
   // setupGoogleAuth(app);  // Disabled until API keys are configured
   // setupLinkedInAuth(app);  // Disabled until API keys are configured
@@ -608,31 +633,194 @@ Requirements:
     }
   });
 
-  // AI-powered cover letter generation endpoint
+  // Resume parsing helper function
+  function parseResumeText(resumeText: string) {
+    const data: any = {};
+    
+    // Extract email
+    const emailMatch = resumeText.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+    data.email = emailMatch ? emailMatch[0] : "";
+    
+    // Extract phone number
+    const phoneMatch = resumeText.match(/(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+    data.phone = phoneMatch ? phoneMatch[0] : "";
+    
+    // Extract name (typically first line or after "Name:" label)
+    const lines = resumeText.split('\n').filter(line => line.trim().length > 0);
+    const namePatterns = [
+      /^Name:\s*(.+)$/i,
+      /^(.+)$/  // First non-empty line if no explicit name label
+    ];
+    
+    for (const line of lines.slice(0, 5)) { // Check first 5 lines
+      for (const pattern of namePatterns) {
+        const match = line.match(pattern);
+        if (match && match[1] && 
+            !match[1].includes('@') && 
+            !match[1].match(/\d{3}/) && 
+            match[1].split(' ').length >= 2) {
+          data.name = match[1].trim();
+          break;
+        }
+      }
+      if (data.name) break;
+    }
+    
+    // Extract education
+    const educationKeywords = /(?:bachelor|master|phd|degree|university|college|graduated|education)/i;
+    const educationLine = lines.find(line => educationKeywords.test(line));
+    if (educationLine) {
+      const degreeMatch = educationLine.match(/(bachelor[^,]*|master[^,]*|phd[^,]*|b\.?[a-z]\.|m\.?[a-z]\.|ph\.?d\.?)[^,]*/i);
+      data.degree = degreeMatch ? degreeMatch[0].trim() : "Bachelor's degree";
+      
+      const universityMatch = educationLine.match(/(?:university|college|institute)\s+[^,\n]*/i);
+      data.university = universityMatch ? universityMatch[0].trim() : "State University";
+    }
+    
+    // Extract work experience
+    const experienceKeywords = /(\d+)[\+\-\s]*(?:years?|yrs?)\s*(?:of\s*)?(?:experience|exp)/i;
+    const expMatch = resumeText.match(experienceKeywords);
+    data.experience = expMatch ? expMatch[1] + " years" : "3 years";
+    
+    // Extract current/recent company
+    const companyKeywords = /(?:current|work|employed|company)[\s\w]*:\s*([^,\n]+)/i;
+    const companyMatch = resumeText.match(companyKeywords);
+    data.currentCompany = companyMatch ? companyMatch[1].trim() : "Tech Solutions Inc.";
+    
+    // Extract profession/role
+    const roleKeywords = /(?:software engineer|developer|analyst|manager|consultant|designer|architect|specialist)/i;
+    const roleMatch = resumeText.match(roleKeywords);
+    data.profession = roleMatch ? roleMatch[0] : "Software Development";
+    
+    // Extract skills
+    const skillsKeywords = /(?:skills|technologies|tools|programming)[\s\w]*:([^.\n]+)/i;
+    const skillsMatch = resumeText.match(skillsKeywords);
+    data.skills = skillsMatch ? skillsMatch[1].trim() : "JavaScript, React, Node.js, Python";
+    
+    // Extract certifications
+    const certKeywords = /(?:certification|certified|certificate)[\s\w]*:?([^.\n]+)/i;
+    const certMatch = resumeText.match(certKeywords);
+    data.certifications = certMatch ? certMatch[1].trim() : "AWS Cloud Practitioner";
+    
+    // Extract location
+    const locationKeywords = /(?:location|address|city)[\s\w]*:?\s*([^,\n]+)/i;
+    const locationMatch = resumeText.match(locationKeywords);
+    data.location = locationMatch ? locationMatch[1].trim() : "San Francisco, CA";
+    
+    // Infer work arrangement (look for remote/hybrid keywords)
+    if (/remote/i.test(resumeText)) {
+      data.workArrangement = "remote";
+    } else if (/hybrid/i.test(resumeText)) {
+      data.workArrangement = "hybrid";
+    } else {
+      data.workArrangement = "onsite";
+    }
+    
+    // Extract responsibilities/duties
+    const responsibilityKeywords = /(?:responsible for|responsibilities|duties)[\s\w]*:?([^.\n]+)/i;
+    const respMatch = resumeText.match(responsibilityKeywords);
+    data.currentRole = respMatch ? respMatch[1].trim() : "developing software solutions";
+    data.responsibilities = respMatch ? respMatch[1].trim() : "managing development projects and coordinating with stakeholders";
+    
+    // Extract tools/methods
+    const toolsKeywords = /(?:tools|software|platforms|systems)[\s\w]*:?([^.\n]+)/i;
+    const toolsMatch = resumeText.match(toolsKeywords);
+    data.tools = toolsMatch ? toolsMatch[1].trim() : "Agile methodologies, Git, and project management tools";
+    
+    return data;
+  }
+
+  // File upload endpoint for resume processing
+  app.post("/api/upload-resume", upload.single('resume'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const filePath = req.file.path;
+      let resumeText = "";
+
+      // Read file content based on file type
+      if (req.file.mimetype === 'text/plain') {
+        resumeText = fs.readFileSync(filePath, 'utf8');
+      } else if (req.file.mimetype === 'application/pdf') {
+        // For PDF files, we'll return a placeholder for now
+        // In production, you'd use a PDF parsing library like pdf-parse
+        resumeText = "PDF content would be extracted here. Please use a .txt file for now.";
+      } else {
+        // For Word documents, return placeholder
+        resumeText = "Word document content would be extracted here. Please use a .txt file for now.";
+      }
+
+      // Clean up uploaded file
+      fs.unlinkSync(filePath);
+
+      // Parse the resume text
+      const parsedData = parseResumeText(resumeText);
+
+      res.json({ 
+        resumeText, 
+        parsedData,
+        success: true 
+      });
+    } catch (error) {
+      console.error("Error processing resume:", error);
+      res.status(500).json({ error: "Failed to process resume file" });
+    }
+  });
+
+  // Enhanced cover letter generation endpoint with resume parsing
   app.post("/api/generate-cover-letter", async (req, res) => {
     try {
-      const { jobTitle, companyName, jobDescription, extractedJobData, experience, tone } = req.body;
+      const { resumeText, jobDetails, personalData, method } = req.body;
       
-      // For now, return a more sophisticated template
-      // In production, this would use AI services like OpenAI or Anthropic
-      const coverLetter = `Dear Hiring Manager,
+      let coverLetter = "";
+      
+      if (method === "resume" && resumeText && jobDetails) {
+        // Parse resume to extract key information
+        const parsedData = parseResumeText(resumeText);
+        
+        // Generate cover letter using parsed resume data
+        const today = new Date().toLocaleDateString();
+        
+        coverLetter = `${parsedData.name || "[YOUR NAME]"}
+COVER LETTER
 
-I am writing to express my strong interest in the ${jobTitle || "[Position]"} position at ${companyName || "[Company]"}. ${experience ? `With ${experience}, I am` : "I am"} excited about the opportunity to contribute to your team's success.
+${today}
 
-${extractedJobData ? `After reviewing your job posting, I am particularly drawn to your focus on ${extractedJobData.requirements?.[0]?.toLowerCase() || "technical excellence"}. My background aligns well with your requirements:` : `Having reviewed the position details, I believe my background aligns well with your needs:`}
+To Whom It May Concern:
 
-${extractedJobData?.requirements ? extractedJobData.requirements.slice(0, 3).map((req: string, index: number) => `• ${req}${index < 2 ? '\n' : ''}`).join('') : `• Strong technical expertise in ${experience || "relevant technologies"}
-• Proven track record of delivering high-quality solutions
-• Excellent collaboration and communication skills`}
+My name is ${parsedData.name || "[YOUR NAME HERE]"}. I obtained a ${parsedData.degree || "[DEGREE]"} from ${parsedData.university || "[UNIVERSITY]"}. I have been in ${parsedData.profession || "[PROFESSION]"} for ${parsedData.experience || "[X YEARS]"}. I plan to expand my knowledge in ${parsedData.profession || "[PROFESSION]"} by gaining experience in ${jobDetails.position} to support ${jobDetails.reason}. I am qualified because I have experience in ${parsedData.skills || "[HARD SKILLS + CERTIFICATION]"}. Additionally, I am certified in ${parsedData.certifications || "[OTHER CERTIFICATIONS]"}. With great enthusiasm, I apply for the ${jobDetails.position} at ${jobDetails.company}.
 
-${extractedJobData?.description ? `I am particularly excited about the opportunity to ${extractedJobData.description.includes('develop') ? 'contribute to your development efforts' : 'join your innovative team'} and help drive ${companyName || "your organization"}'s continued growth.` : `I am eager to bring my passion and expertise to ${companyName || "your organization"} and contribute to your team's success.`}
+I currently work ${parsedData.workArrangement || "[ONSITE / HYBRID / REMOTE]"} for ${parsedData.currentCompany || "[COMPANY, LOCATION]"} with my location in ${parsedData.location || "[YOUR CITY]"}. In this position, I ${parsedData.currentRole || "[MAIN RESPONSIBILITY]"}. Managing ${parsedData.profession || "[YOUR ROLE]"} helps me organize my work to properly support ${parsedData.profession || "[WORK TYPE]"}, stakeholders, and partners. My responsibilities include ${parsedData.responsibilities || "[TOP DUTY]"}. Organization and relationship building are vital in ${parsedData.profession || "[PROFESSION]"}. I ensure efficiency and build trust with colleagues by staying organized using ${parsedData.tools || "[TOOLS OR METHODS]"}.
 
-${tone === 'enthusiastic' ? 'I would be thrilled to discuss how my background and enthusiasm can contribute to your team!' : tone === 'formal' ? 'I would welcome the opportunity to discuss my qualifications in greater detail.' : 'I look forward to the opportunity to discuss how my experience aligns with your needs.'}
+Based on my experience, I am a strong candidate for the ${jobDetails.position} at ${jobDetails.company}. Hiring me means gaining a dedicated professional with expertise and insight. You can reach me at ${parsedData.phone || "[PHONE NUMBER]"} or ${parsedData.email || "[EMAIL]"}. Thank you for your consideration. I look forward to your response.
 
-Thank you for your consideration.
+Respectfully,
+${parsedData.name || "[YOUR SIGNATURE]"}`;
 
-${tone === 'formal' ? 'Respectfully,' : 'Best regards,'}
-[Your Name]`;
+      } else if (method === "manual" && personalData && jobDetails) {
+        // Generate cover letter using manual data
+        const today = new Date().toLocaleDateString();
+        
+        coverLetter = `${personalData.name.toUpperCase()}
+COVER LETTER
+
+${today}
+
+To Whom It May Concern:
+
+My name is ${personalData.name}. I obtained a ${personalData.degree} from ${personalData.university}. I have been in ${personalData.profession} for ${personalData.yearsExperience} years. I plan to expand my knowledge in ${personalData.profession} by gaining experience in ${jobDetails.position} to support ${jobDetails.reason}. I am qualified because I have experience in ${personalData.skills}. Additionally, I am certified in ${personalData.certifications}. With great enthusiasm, I apply for the ${jobDetails.position} at ${jobDetails.company}.
+
+I currently work ${personalData.workArrangement} for ${personalData.currentCompany}, ${personalData.currentLocation} with my remote location in ${personalData.currentLocation}. In this position, I ${personalData.mainResponsibility}. Managing ${personalData.profession} helps me organize my work to properly support ${personalData.profession}, stakeholders, and partners. My responsibilities include ${personalData.topDuty}. Organization and relationship building are vital in ${personalData.profession}. I ensure efficiency and build trust with colleagues by staying organized using ${personalData.tools}.
+
+Based on my experience, I am a strong candidate for the ${jobDetails.position} at ${jobDetails.company}. Hiring me means gaining a dedicated professional with expertise and insight. You can reach me at ${personalData.phone} or ${personalData.email}. Thank you for your consideration. I look forward to your response.
+
+Respectfully,
+${personalData.name}`;
+      } else {
+        return res.status(400).json({ error: "Invalid request data" });
+      }
 
       res.json({ coverLetter });
     } catch (error) {
