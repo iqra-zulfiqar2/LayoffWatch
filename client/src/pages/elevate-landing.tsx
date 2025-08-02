@@ -202,7 +202,7 @@ export default function ElevateLanding() {
               <p className="text-sm text-gray-600 mb-4">
                 Generate personalized cover letters that perfectly match job descriptions and company culture.
               </p>
-              <Link href="/tools/cover-letter-generator">
+              <Link href="/tools/cover-letter">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
                   Try Now
                 </Button>

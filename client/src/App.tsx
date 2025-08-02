@@ -21,7 +21,7 @@ import MagicLogin from "@/pages/magic-login";
 import CareerToolsHub from "@/pages/career-tools-hub";
 import LayoffTracker from "@/pages/layoff-tracker";
 import ResumeBuilder from "@/pages/resume-builder";
-import CoverLetterGenerator from "@/pages/cover-letter-generator";
+import CoverLetter from "@/pages/cover-letter";
 import InterviewPreparation from "@/pages/interview-preparation";
 import LinkedInOptimizer from "@/pages/linkedin-optimizer";
 import RecruiterOutreach from "@/pages/recruiter-outreach";
@@ -46,7 +46,7 @@ function Router() {
       <Route path="/tools" component={CareerToolsHub} />
       <Route path="/tools/layoff-tracker" component={LayoffTracker} />
       <Route path="/tools/resume-builder" component={ResumeBuilder} />
-      <Route path="/tools/cover-letter-generator" component={CoverLetterGenerator} />
+      <Route path="/tools/cover-letter" component={CoverLetter} />
       <Route path="/tools/interview-preparation" component={InterviewPreparation} />
       <Route path="/tools/linkedin-optimizer" component={LinkedInOptimizer} />
       <Route path="/tools/recruiter-outreach" component={RecruiterOutreach} />

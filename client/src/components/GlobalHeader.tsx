@@ -32,7 +32,7 @@ const tools = [
     id: "cover-letter", 
     name: "Cover Letter Generator", 
     icon: Mail, 
-    href: "/tools/cover-letter-generator",
+    href: "/tools/cover-letter",
     description: "Generate personalized cover letters instantly"
   },
   { 
