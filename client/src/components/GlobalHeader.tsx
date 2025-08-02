@@ -121,20 +121,20 @@ export default function GlobalHeader() {
               </button>
               
               {/* Tools Dropdown */}
-              <div className="absolute top-full left-0 mt-2 w-[480px] bg-white rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-3">
+              <div className="absolute top-full left-0 mt-2 w-[520px] bg-white rounded-2xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
+                <div className="p-8">
+                  <div className="grid grid-cols-2 gap-4">
                     {tools.map((tool) => {
                       const IconComponent = tool.icon;
                       return (
                         <Link key={tool.id} href={tool.href}>
-                          <div className="group/item flex items-start p-4 rounded-lg hover:bg-blue-50 transition-all duration-200 cursor-pointer">
-                            <div className="p-2 rounded-lg bg-blue-100 text-blue-600 mr-3 flex-shrink-0 group-hover/item:bg-blue-200 transition-colors">
-                              <IconComponent className="w-5 h-5" />
+                          <div className="group/item flex items-start p-5 rounded-xl hover:bg-gray-50 transition-all duration-200 cursor-pointer border border-transparent hover:border-gray-200 hover:shadow-sm">
+                            <div className="p-3 rounded-xl bg-blue-50 text-blue-600 mr-4 flex-shrink-0 group-hover/item:bg-blue-100 transition-colors">
+                              <IconComponent className="w-6 h-6" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-semibold text-gray-900 text-sm mb-1 group-hover/item:text-blue-700 transition-colors">{tool.name}</h3>
-                              <p className="text-xs text-gray-600 leading-relaxed">{tool.description}</p>
+                              <h3 className="font-semibold text-gray-900 text-base mb-2 group-hover/item:text-blue-700 transition-colors leading-tight">{tool.name}</h3>
+                              <p className="text-sm text-gray-500 leading-relaxed">{tool.description}</p>
                             </div>
                           </div>
                         </Link>
