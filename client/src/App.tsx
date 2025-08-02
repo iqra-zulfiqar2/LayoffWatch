@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
+import ElevateLanding from "@/pages/elevate-landing";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Profile from "@/pages/profile";
@@ -51,7 +52,8 @@ function Router() {
       <Route path="/tools/recruiter-outreach" component={RecruiterOutreach} />
       
       {/* Main homepage - accessible to all users */}
-      <Route path="/" component={CareerToolsHub} />
+      <Route path="/" component={ElevateLanding} />
+      <Route path="/old-home" component={CareerToolsHub} />
       <Route component={NotFound} />
     </Switch>
   );
