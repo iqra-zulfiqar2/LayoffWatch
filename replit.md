@@ -31,7 +31,7 @@ The application is built as a monorepo, separating client, server, and shared co
 - **Resume Builder**: ATS optimization, AI assistance, and professional templates.
 - **Cover Letter Generator**: Comprehensive resume parsing system with file upload processing (.txt, .pdf, .doc, .docx), intelligent data extraction (name, email, experience, skills, etc.), and personalized cover letter generation using parsed resume data with professional template structure.
 - **Interview Preparation**: AI Interview Question Generator & Scorer with job description-based question generation, personalized scoring system, detailed feedback, and comprehensive practice workflow (input → questions → practice → results).
-- **LinkedIn Optimizer**: Profile analysis, headline generation, and SEO enhancement.
+- **LinkedIn Optimizer**: Profile analysis, headline generation, and SEO enhancement with LinkedIn profile URL crawling functionality using Puppeteer to extract profile data (name, headline, about section, skills, experience, keywords).
 - **Recruiter Outreach Script Generator**: Personalized scripts for LinkedIn DMs, emails, and referral requests.
 - **User Management**: User profile management with notification preferences.
 - **Analytics**: Comprehensive dashboard with historical layoff data visualization and trends analysis.

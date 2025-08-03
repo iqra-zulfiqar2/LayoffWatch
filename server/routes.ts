@@ -11,6 +11,9 @@ import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import puppeteer from "puppeteer";
+import * as cheerio from "cheerio";
+import axios from "axios";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
@@ -886,6 +889,139 @@ Requirements:
     } catch (error) {
       console.error("Error scoring interview answers:", error);
       res.status(500).json({ error: "Failed to score interview answers" });
+    }
+  });
+
+  // LinkedIn Profile Crawling endpoint
+  app.post("/api/crawl-linkedin-profile", async (req, res) => {
+    try {
+      const { profileUrl } = req.body;
+      
+      if (!profileUrl || !profileUrl.includes('linkedin.com')) {
+        return res.status(400).json({ error: "Valid LinkedIn profile URL is required" });
+      }
+
+      // Launch puppeteer browser
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
+      });
+
+      try {
+        const page = await browser.newPage();
+        
+        // Set user agent to appear as a regular browser
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+        
+        // Navigate to the LinkedIn profile
+        await page.goto(profileUrl, { 
+          waitUntil: 'networkidle2',
+          timeout: 30000 
+        });
+
+        // Wait for profile content to load
+        await page.waitForSelector('h1', { timeout: 10000 });
+
+        // Extract profile data
+        const profileData = await page.evaluate(() => {
+          const name = document.querySelector('h1')?.textContent?.trim() || '';
+          const headline = document.querySelector('.text-body-medium')?.textContent?.trim() || '';
+          const location = document.querySelector('.text-body-small.inline.t-black--light.break-words')?.textContent?.trim() || '';
+          
+          // Extract about section
+          const aboutElement = document.querySelector('[data-section="summary"] .pv-about__text');
+          const about = aboutElement?.textContent?.trim() || '';
+          
+          // Extract profile image
+          const profileImg = document.querySelector('.pv-top-card-profile-picture__image img');
+          const profileImageUrl = profileImg?.getAttribute('src') || '';
+          
+          // Extract connection count
+          const connectionElement = document.querySelector('.t-black--light.t-normal');
+          const connectionCount = connectionElement?.textContent?.trim() || '';
+          
+          // Extract skills (attempt to find skills section)
+          const skillElements = document.querySelectorAll('[data-section="skills"] .pv-skill-category-entity__name-text');
+          const skills: string[] = [];
+          skillElements.forEach(el => {
+            const skill = el.textContent?.trim();
+            if (skill) skills.push(skill);
+          });
+          
+          // Extract experience
+          const experienceElements = document.querySelectorAll('[data-section="experience"] .pv-entity__summary-info');
+          const experience: Array<{title: string, company: string, duration: string, description: string}> = [];
+          
+          experienceElements.forEach(el => {
+            const titleEl = el.querySelector('h3');
+            const companyEl = el.querySelector('.pv-entity__secondary-title');
+            const durationEl = el.querySelector('.pv-entity__date-range span:last-child');
+            const descriptionEl = el.querySelector('.pv-entity__description');
+            
+            if (titleEl && companyEl) {
+              experience.push({
+                title: titleEl.textContent?.trim() || '',
+                company: companyEl.textContent?.trim() || '',
+                duration: durationEl?.textContent?.trim() || '',
+                description: descriptionEl?.textContent?.trim() || ''
+              });
+            }
+          });
+
+          return {
+            name,
+            headline,
+            about,
+            location,
+            profileImageUrl,
+            connectionCount,
+            skills,
+            experience,
+            keywords: [] // Will be populated from extracted text
+          };
+        });
+
+        // Generate keywords from extracted text
+        const allText = `${profileData.name} ${profileData.headline} ${profileData.about}`.toLowerCase();
+        const commonKeywords = [
+          'software', 'engineer', 'developer', 'manager', 'senior', 'lead', 'director',
+          'javascript', 'python', 'react', 'node', 'typescript', 'aws', 'docker',
+          'leadership', 'team', 'agile', 'scrum', 'project', 'product', 'marketing',
+          'sales', 'business', 'strategy', 'growth', 'analytics', 'data'
+        ];
+        
+        profileData.keywords = commonKeywords.filter(keyword => 
+          allText.includes(keyword)
+        );
+
+        await browser.close();
+
+        res.json({
+          success: true,
+          profileData,
+          extractedAt: new Date().toISOString()
+        });
+
+      } catch (error) {
+        await browser.close();
+        throw error;
+      }
+
+    } catch (error) {
+      console.error("Error crawling LinkedIn profile:", error);
+      res.status(500).json({ 
+        error: "Failed to crawl LinkedIn profile. The profile might be private, require login, or the URL is invalid.",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

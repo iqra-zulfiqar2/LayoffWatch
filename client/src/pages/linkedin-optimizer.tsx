@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Linkedin, 
   Search, 
@@ -18,7 +18,10 @@ import {
   Eye,
   MessageSquare,
   Share2,
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  Download,
+  ExternalLink
 } from "lucide-react";
 import GlobalHeader from "@/components/GlobalHeader";
 
@@ -65,20 +68,88 @@ const keywordSuggestions = [
   "Agile", "Leadership", "Problem Solving", "Team Collaboration", "Innovation"
 ];
 
+interface ProfileData {
+  name: string;
+  headline: string;
+  about: string;
+  location: string;
+  experience: Array<{
+    title: string;
+    company: string;
+    duration: string;
+    description: string;
+  }>;
+  skills: string[];
+  keywords: string[];
+  profileImageUrl?: string;
+  connectionCount?: string;
+}
+
 export default function LinkedInOptimizer() {
   const [activeTab, setActiveTab] = useState("analysis");
   const [profileUrl, setProfileUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [currentHeadline, setCurrentHeadline] = useState("");
   const [newHeadline, setNewHeadline] = useState("");
   const [profileScore, setProfileScore] = useState(47);
+  const [crawlError, setCrawlError] = useState("");
+  const { toast } = useToast();
 
-  const analyzeProfile = () => {
+  const analyzeProfile = async () => {
+    if (!profileUrl || !profileUrl.includes('linkedin.com')) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid LinkedIn profile URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
-    // Simulate analysis
-    setTimeout(() => {
+    setCrawlError("");
+    
+    try {
+      const response = await fetch('/api/crawl-linkedin-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ profileUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to crawl profile');
+      }
+
+      const data = await response.json();
+      setProfileData(data.profileData);
+      setCurrentHeadline(data.profileData.headline || "");
+      
+      // Calculate profile score based on completeness
+      let score = 0;
+      if (data.profileData.headline) score += 20;
+      if (data.profileData.about) score += 25;
+      if (data.profileData.experience.length > 0) score += 25;
+      if (data.profileData.skills.length > 5) score += 20;
+      if (data.profileData.profileImageUrl) score += 10;
+      
+      setProfileScore(score);
+
+      toast({
+        title: "Profile Analyzed!",
+        description: `Successfully crawled and analyzed LinkedIn profile for ${data.profileData.name}`,
+      });
+    } catch (error) {
+      setCrawlError("Failed to crawl LinkedIn profile. The profile might be private or the URL is invalid.");
+      toast({
+        title: "Crawling Failed",
+        description: "Unable to access the LinkedIn profile. Please check the URL and try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 3000);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -163,10 +234,99 @@ export default function LinkedInOptimizer() {
                           disabled={isAnalyzing || !profileUrl}
                           className="bg-gradient-to-r from-blue-600 to-blue-400"
                         >
-                          {isAnalyzing ? "Analyzing..." : "Analyze"}
+                          {isAnalyzing ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Crawling...
+                            </>
+                          ) : (
+                            <>
+                              <Search className="w-4 h-4 mr-2" />
+                              Crawl Profile
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
+
+                    {/* Crawl Error */}
+                    {crawlError && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2">
+                          <AlertCircle className="w-5 h-5 text-red-600" />
+                          <div>
+                            <h3 className="font-medium text-red-900">Crawling Failed</h3>
+                            <p className="text-sm text-red-700">{crawlError}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Profile Data Display */}
+                    {profileData && (
+                      <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50">
+                        <div className="flex items-start space-x-4">
+                          {profileData.profileImageUrl && (
+                            <img
+                              src={profileData.profileImageUrl}
+                              alt={profileData.name}
+                              className="w-16 h-16 rounded-full object-cover"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
+                            <p className="text-gray-600 mb-2">{profileData.headline}</p>
+                            <p className="text-sm text-gray-500">{profileData.location}</p>
+                            {profileData.connectionCount && (
+                              <p className="text-sm text-blue-600">{profileData.connectionCount} connections</p>
+                            )}
+                          </div>
+                          <Button size="sm" variant="outline">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Profile
+                          </Button>
+                        </div>
+                        
+                        {profileData.about && (
+                          <div className="mt-4">
+                            <h4 className="font-medium text-gray-900 mb-2">About</h4>
+                            <p className="text-sm text-gray-700 line-clamp-3">{profileData.about}</p>
+                          </div>
+                        )}
+
+                        {profileData.skills.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="font-medium text-gray-900 mb-2">Skills ({profileData.skills.length})</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {profileData.skills.slice(0, 8).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {profileData.skills.length > 8 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{profileData.skills.length - 8} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {profileData.experience.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="font-medium text-gray-900 mb-2">Recent Experience</h4>
+                            <div className="space-y-2">
+                              {profileData.experience.slice(0, 2).map((exp, index) => (
+                                <div key={index} className="text-sm">
+                                  <p className="font-medium">{exp.title} at {exp.company}</p>
+                                  <p className="text-gray-600">{exp.duration}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Profile Score */}
                     <div className="border rounded-lg p-6 bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -220,11 +380,16 @@ export default function LinkedInOptimizer() {
                     <div>
                       <label className="text-sm font-medium">Current Headline</label>
                       <Textarea
-                        placeholder="Enter your current LinkedIn headline..."
+                        placeholder={profileData ? "Headline extracted from your profile" : "Enter your current LinkedIn headline..."}
                         value={currentHeadline}
                         onChange={(e) => setCurrentHeadline(e.target.value)}
                         rows={2}
                       />
+                      {profileData && !currentHeadline && (
+                        <p className="text-sm text-blue-600 mt-1">
+                          We've extracted your headline from your LinkedIn profile
+                        </p>
+                      )}
                     </div>
 
                     <Button className="bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -297,9 +462,16 @@ export default function LinkedInOptimizer() {
                     <div>
                       <label className="text-sm font-medium">Current About Section</label>
                       <Textarea
-                        placeholder="Paste your current LinkedIn About section here..."
+                        placeholder={profileData ? "About section extracted from your profile" : "Paste your current LinkedIn About section here..."}
+                        value={profileData?.about || ""}
+                        readOnly={!!profileData}
                         rows={6}
                       />
+                      {profileData?.about && (
+                        <p className="text-sm text-blue-600 mt-1">
+                          About section extracted from your LinkedIn profile
+                        </p>
+                      )}
                     </div>
                     
                     <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -334,19 +506,26 @@ export default function LinkedInOptimizer() {
                     </div>
 
                     <div className="border rounded-lg p-4 bg-yellow-50">
-                      <h3 className="font-semibold mb-3">Recommended Keywords</h3>
+                      <h3 className="font-semibold mb-3">
+                        {profileData?.keywords.length ? 'Keywords Found in Your Profile' : 'Recommended Keywords'}
+                      </h3>
                       <div className="flex flex-wrap gap-2">
-                        {keywordSuggestions.map((keyword) => (
+                        {(profileData?.keywords.length ? profileData.keywords : keywordSuggestions).map((keyword) => (
                           <Badge 
                             key={keyword}
-                            variant="secondary"
+                            variant={profileData?.keywords.includes(keyword) ? "default" : "secondary"}
                             className="cursor-pointer hover:bg-blue-100"
                           >
                             {keyword}
-                            <span className="ml-2 text-xs">+</span>
+                            {!profileData?.keywords.includes(keyword) && <span className="ml-2 text-xs">+</span>}
                           </Badge>
                         ))}
                       </div>
+                      {profileData?.keywords.length === 0 && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          No keywords detected in your profile. Consider adding relevant industry terms.
+                        </p>
+                      )}
                     </div>
 
                     <div className="border rounded-lg p-4">
