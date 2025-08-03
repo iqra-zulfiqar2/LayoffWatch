@@ -769,6 +769,126 @@ Requirements:
     }
   });
 
+  // AI Interview Question Generation endpoint
+  app.post("/api/generate-interview-questions", async (req, res) => {
+    try {
+      const { jobDescription, jobTitle, interviewType, difficulty } = req.body;
+      
+      if (!jobDescription && !jobTitle) {
+        return res.status(400).json({ error: "Job description or job title is required" });
+      }
+
+      // Mock AI-generated questions for now
+      // In production, this would use Anthropic/OpenAI API
+      const mockQuestions = [
+        {
+          id: "q1",
+          question: "Tell me about your experience with the technologies mentioned in this job posting.",
+          category: "Technical",
+          modelAnswer: "I should demonstrate specific experience with the key technologies, provide concrete examples of projects, and show how my skills align with the role requirements.",
+          isAnswered: false
+        },
+        {
+          id: "q2", 
+          question: "Describe a time when you had to learn a new technology quickly to complete a project.",
+          category: "Behavioral",
+          modelAnswer: "Using the STAR method, I should describe a specific situation where I successfully learned new technology under pressure, highlighting my learning process and the positive outcome.",
+          isAnswered: false
+        },
+        {
+          id: "q3",
+          question: "How would you approach solving a complex technical problem in this role?",
+          category: "Situational", 
+          modelAnswer: "I should outline a systematic problem-solving approach: understanding requirements, breaking down the problem, researching solutions, implementing, and testing.",
+          isAnswered: false
+        },
+        {
+          id: "q4",
+          question: "What interests you most about this position and our company?",
+          category: "Behavioral",
+          modelAnswer: "I should show genuine interest by mentioning specific aspects of the role and company that align with my career goals and values.",
+          isAnswered: false
+        },
+        {
+          id: "q5",
+          question: "How do you stay current with industry trends and technologies?",
+          category: "Technical",
+          modelAnswer: "I should mention specific resources like blogs, conferences, courses, and communities I engage with to keep my skills up-to-date.",
+          isAnswered: false
+        }
+      ];
+
+      // Extract job info for analysis
+      const extractedJobTitle = jobTitle || "Software Engineer";
+      const keySkills = ["JavaScript", "React", "Node.js", "Problem Solving"];
+      const requirements = ["3+ years experience", "Strong communication", "Team collaboration"];
+
+      const jobAnalysis = {
+        jobTitle: extractedJobTitle,
+        company: "Target Company",
+        keySkills,
+        requirements,
+        questions: mockQuestions
+      };
+
+      res.json(jobAnalysis);
+    } catch (error) {
+      console.error("Error generating interview questions:", error);
+      res.status(500).json({ error: "Failed to generate interview questions" });
+    }
+  });
+
+  // AI Interview Answer Scoring endpoint
+  app.post("/api/score-interview-answers", async (req, res) => {
+    try {
+      const { questions, userAnswers, jobTitle } = req.body;
+
+      // Mock AI scoring for now
+      // In production, this would use Anthropic/OpenAI API to score answers
+      const scoredQuestions = questions.map((question: any) => {
+        const userAnswer = userAnswers[question.id];
+        
+        if (!userAnswer || userAnswer.trim().length === 0) {
+          return {
+            ...question,
+            score: 0,
+            feedback: "No answer provided. Make sure to answer all questions to get meaningful feedback."
+          };
+        }
+
+        // Mock scoring logic based on answer length and content
+        let score = 5; // Base score
+        
+        if (userAnswer.length > 100) score += 2;
+        if (userAnswer.length > 200) score += 1;
+        if (userAnswer.toLowerCase().includes("experience")) score += 1;
+        if (userAnswer.toLowerCase().includes("project")) score += 1;
+        
+        score = Math.min(10, score);
+
+        let feedback = "";
+        if (score >= 8) {
+          feedback = "Excellent answer! You provided specific details and demonstrated clear understanding. Consider adding more quantifiable results to make it even stronger.";
+        } else if (score >= 6) {
+          feedback = "Good answer with relevant information. To improve, try adding more specific examples and explain the impact of your actions.";
+        } else {
+          feedback = "Your answer needs more development. Consider using the STAR method (Situation, Task, Action, Result) and provide more specific examples.";
+        }
+
+        return {
+          ...question,
+          score,
+          feedback
+        };
+      });
+
+      res.json({ questions: scoredQuestions });
+    } catch (error) {
+      console.error("Error scoring interview answers:", error);
+      res.status(500).json({ error: "Failed to score interview answers" });
+    }
+  });
+
   // Enhanced cover letter generation endpoint with resume parsing
   app.post("/api/generate-cover-letter", async (req, res) => {
     try {

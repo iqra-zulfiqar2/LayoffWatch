@@ -29,8 +29,8 @@ The application is built as a monorepo, separating client, server, and shared co
 ### Feature Specifications
 - **Layoff Tracker**: Real-time layoff monitoring with data integration from `layoffs.fyi`, `warntracker.com`, and `layoffdata.com`. Includes comprehensive data columns, advanced filtering, and detailed company profiles. Publicly accessible enhanced homepage.
 - **Resume Builder**: ATS optimization, AI assistance, and professional templates.
-- **Cover Letter Generator**: Personalized AI-generated content based on job descriptions scraped from URLs. Supports resume uploads and manual input, with editing, copying, and download capabilities.
-- **Interview Preparation**: AI mock interviews with performance tracking.
+- **Cover Letter Generator**: Comprehensive resume parsing system with file upload processing (.txt, .pdf, .doc, .docx), intelligent data extraction (name, email, experience, skills, etc.), and personalized cover letter generation using parsed resume data with professional template structure.
+- **Interview Preparation**: AI Interview Question Generator & Scorer with job description-based question generation, personalized scoring system, detailed feedback, and comprehensive practice workflow (input → questions → practice → results).
 - **LinkedIn Optimizer**: Profile analysis, headline generation, and SEO enhancement.
 - **Recruiter Outreach Script Generator**: Personalized scripts for LinkedIn DMs, emails, and referral requests.
 - **User Management**: User profile management with notification preferences.
