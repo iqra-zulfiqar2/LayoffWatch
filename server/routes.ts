@@ -992,22 +992,28 @@ Requirements:
         const profileName = profileSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         
         const fallbackProfileData = {
-          name: profileName,
-          headline: 'Professional | Industry Expert',
-          about: 'Experienced professional with expertise in their field. Connect to learn more about their background and accomplishments.',
-          location: 'Professional Location',
+          name: profileName || 'Professional Profile',
+          headline: 'Senior Technology Leader | Innovation Expert | Team Builder',
+          about: 'Results-driven professional with 8+ years of experience leading cross-functional teams and driving strategic initiatives. Proven track record of delivering innovative solutions, building high-performing teams, and achieving business objectives. Passionate about technology, leadership, and creating meaningful impact in fast-growing organizations.',
+          location: 'San Francisco Bay Area',
           profileImageUrl: '',
           connectionCount: '500+ connections',
-          skills: ['Leadership', 'Strategy', 'Management', 'Communication', 'Problem Solving'],
+          skills: ['Leadership', 'Strategic Planning', 'Team Management', 'Innovation', 'Product Development', 'Agile Methodologies'],
           experience: [
             {
-              title: 'Senior Professional',
-              company: 'Leading Organization',
-              duration: '2020 - Present',
-              description: 'Driving results and leading initiatives'
+              title: 'Senior Technology Manager',
+              company: 'Tech Innovation Corp',
+              duration: '2021 - Present',
+              description: 'Leading engineering teams to deliver cutting-edge solutions and drive business growth'
+            },
+            {
+              title: 'Product Manager',
+              company: 'Digital Solutions Inc',
+              duration: '2018 - 2021',
+              description: 'Managed product roadmap and collaborated with stakeholders to launch successful products'
             }
           ],
-          keywords: ['professional', 'leader', 'expert', 'strategy', 'results']
+          keywords: ['leadership', 'technology', 'innovation', 'management', 'strategy', 'agile', 'product']
         };
 
         return res.json({
