@@ -264,67 +264,115 @@ export default function LinkedInOptimizer() {
 
                     {/* Profile Data Display */}
                     {profileData && (
-                      <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50">
-                        <div className="flex items-start space-x-4">
-                          {profileData.profileImageUrl && (
-                            <img
-                              src={profileData.profileImageUrl}
-                              alt={profileData.name}
-                              className="w-16 h-16 rounded-full object-cover"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
-                            <p className="text-gray-600 mb-2">{profileData.headline}</p>
-                            <p className="text-sm text-gray-500">{profileData.location}</p>
-                            {profileData.connectionCount && (
-                              <p className="text-sm text-blue-600">{profileData.connectionCount} connections</p>
+                      <div className="space-y-6">
+                        {/* Profile Header */}
+                        <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50">
+                          <div className="flex items-start space-x-4">
+                            {profileData.profileImageUrl && (
+                              <img
+                                src={profileData.profileImageUrl}
+                                alt={profileData.name}
+                                className="w-16 h-16 rounded-full object-cover"
+                              />
                             )}
-                          </div>
-                          <Button size="sm" variant="outline">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            View Profile
-                          </Button>
-                        </div>
-                        
-                        {profileData.about && (
-                          <div className="mt-4">
-                            <h4 className="font-medium text-gray-900 mb-2">About</h4>
-                            <p className="text-sm text-gray-700 line-clamp-3">{profileData.about}</p>
-                          </div>
-                        )}
-
-                        {profileData.skills.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-medium text-gray-900 mb-2">Skills ({profileData.skills.length})</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {profileData.skills.slice(0, 8).map((skill, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {skill}
-                                </Badge>
-                              ))}
-                              {profileData.skills.length > 8 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{profileData.skills.length - 8} more
-                                </Badge>
+                            <div className="flex-1">
+                              <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
+                              <p className="text-sm text-gray-500">{profileData.location}</p>
+                              {profileData.connectionCount && (
+                                <p className="text-sm text-blue-600">{profileData.connectionCount}</p>
                               )}
                             </div>
+                            <Button size="sm" variant="outline" onClick={() => window.open(profileUrl, '_blank')}>
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              View Profile
+                            </Button>
                           </div>
-                        )}
+                        </div>
 
-                        {profileData.experience.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-medium text-gray-900 mb-2">Recent Experience</h4>
-                            <div className="space-y-2">
-                              {profileData.experience.slice(0, 2).map((exp, index) => (
-                                <div key={index} className="text-sm">
-                                  <p className="font-medium">{exp.title} at {exp.company}</p>
-                                  <p className="text-gray-600">{exp.duration}</p>
-                                </div>
-                              ))}
+                        {/* Current Headline */}
+                        <div className="border rounded-lg p-6 bg-yellow-50">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <MessageSquare className="w-5 h-5 text-yellow-600" />
+                            <h4 className="font-semibold text-gray-900">Current LinkedIn Headline</h4>
+                          </div>
+                          <div className="bg-white p-4 rounded border">
+                            <p className="text-gray-800 font-medium">{profileData.headline}</p>
+                          </div>
+                          <div className="mt-3 text-sm text-gray-600">
+                            <p>This is your current headline as it appears on LinkedIn</p>
+                          </div>
+                        </div>
+
+                        {/* About Section */}
+                        {profileData.about && (
+                          <div className="border rounded-lg p-6 bg-blue-50">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Eye className="w-5 h-5 text-blue-600" />
+                              <h4 className="font-semibold text-gray-900">Current About Section</h4>
+                            </div>
+                            <div className="bg-white p-4 rounded border max-h-48 overflow-y-auto">
+                              <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{profileData.about}</p>
+                            </div>
+                            <div className="mt-3 text-sm text-gray-600">
+                              <p>Character count: {profileData.about.length} / 2600</p>
                             </div>
                           </div>
                         )}
+
+                        {/* Keywords Found */}
+                        {profileData.keywords.length > 0 && (
+                          <div className="border rounded-lg p-6 bg-purple-50">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Search className="w-5 h-5 text-purple-600" />
+                              <h4 className="font-semibold text-gray-900">Keywords Found in Profile</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {profileData.keywords.map((keyword, index) => (
+                                <Badge key={index} className="bg-purple-100 text-purple-800 hover:bg-purple-200">
+                                  {keyword}
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="mt-3 text-sm text-gray-600">
+                              <p>These keywords help your profile appear in relevant searches</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Skills and Experience Summary */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {profileData.skills.length > 0 && (
+                            <div className="border rounded-lg p-4">
+                              <h4 className="font-medium text-gray-900 mb-2">Skills ({profileData.skills.length})</h4>
+                              <div className="flex flex-wrap gap-1">
+                                {profileData.skills.slice(0, 6).map((skill, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                                {profileData.skills.length > 6 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{profileData.skills.length - 6} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {profileData.experience.length > 0 && (
+                            <div className="border rounded-lg p-4">
+                              <h4 className="font-medium text-gray-900 mb-2">Recent Experience</h4>
+                              <div className="space-y-2">
+                                {profileData.experience.slice(0, 2).map((exp, index) => (
+                                  <div key={index} className="text-sm">
+                                    <p className="font-medium">{exp.title}</p>
+                                    <p className="text-gray-600">{exp.company}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
