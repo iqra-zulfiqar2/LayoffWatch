@@ -15,7 +15,7 @@ import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
 import axios from "axios";
 import mammoth from "mammoth";
-import textract from "textract";
+import docxParser from "docx-parser";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
@@ -745,36 +745,40 @@ Requirements:
       const filePath = req.file.path;
       let resumeText = "";
 
-      // Read file content based on file type using textract for universal parsing
+      // Read file content based on file type with specific parsers
       try {
-        resumeText = await new Promise((resolve, reject) => {
-          textract.fromFileWithPath(filePath, (error: any, text: string) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(text || "");
-            }
-          });
-        });
-      } catch (error) {
-        console.error("Error parsing file with textract:", error);
+        const dataBuffer = fs.readFileSync(filePath);
         
-        // Fallback to specific parsers
-        try {
-          if (req.file.mimetype === 'text/plain') {
-            resumeText = fs.readFileSync(filePath, 'utf8');
-          } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-            // Parse DOCX files with mammoth
-            const dataBuffer = fs.readFileSync(filePath);
+        if (req.file.mimetype === 'text/plain') {
+          // Parse TXT files
+          resumeText = fs.readFileSync(filePath, 'utf8');
+        } else if (req.file.mimetype === 'application/pdf') {
+          // PDF parsing is temporarily unavailable
+          resumeText = "PDF parsing is currently unavailable. Please convert your PDF to .txt, .doc, or .docx format and try again.";
+        } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+          // Parse DOCX files
+          try {
             const result = await mammoth.extractRawText({ buffer: dataBuffer });
             resumeText = result.value;
-          } else {
-            resumeText = "Unable to extract text from this file format. Please try uploading a .txt file or convert your resume to text format.";
+          } catch (docxError) {
+            console.error("Error parsing DOCX:", docxError);
+            resumeText = "Error parsing DOCX file. Please try with a different format.";
           }
-        } catch (fallbackError) {
-          console.error("Fallback parsing failed:", fallbackError);
-          resumeText = "Error processing file. Please try uploading a .txt file.";
+        } else if (req.file.mimetype === 'application/msword') {
+          // Parse DOC files
+          try {
+            const docText = await docxParser.parseDocx(dataBuffer);
+            resumeText = docText;
+          } catch (docError) {
+            console.error("Error parsing DOC:", docError);
+            resumeText = "Error parsing DOC file. Please try with a different format.";
+          }
+        } else {
+          resumeText = "Unsupported file format. Please use .txt, .pdf, .doc, or .docx files.";
         }
+      } catch (error) {
+        console.error("Error reading file:", error);
+        resumeText = "Error processing file. Please try uploading a different file.";
       }
 
       // Clean up uploaded file
