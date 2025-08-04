@@ -1148,30 +1148,20 @@ Requirements:
         // Parse resume to extract key information
         const parsedData = parseResumeText(resumeText);
         
-        // Generate cover letter using parsed resume data
-        const today = new Date().toLocaleDateString();
-        
+        // Generate cover letter using parsed resume data with the new template format
         coverLetter = `                                                                                                                        ${(parsedData.name || "NAME").toUpperCase()}
                                                                                                                         COVER LETTER
 
 [Date]
 To Whom It May Concern:
 
-[This first paragraph is your introduction to the person reading this. Depending on if your applying, you may use the first or second language template. Keep all critical lines within this pivot. This means you will not add pivotal language instead of saying "additionally, I am certified in..."]
+My name is ${parsedData.name || "[YOUR NAME HERE]"}. I obtained a ${parsedData.degree || "[DEGREE FROM WHERE]"}. I have been in ${parsedData.profession || "[NAME OF PROFESSION AND HOW MANY YEARS]"} and I plan to diversify and expand my knowledge in ${parsedData.profession || "[NAME OF PROFESSION]"} by continuing my experience in ${jobDetails.position || "[NAME OF POSITION]"} to aid ${jobDetails.reason || "[NAME YOUR REASON]"}. I am qualified for this position because I have experience in ${parsedData.skills || "[NAME HARD SKILLS THAT ARE LISTED ON YOUR RESUME AND MOST IMPORTANT CERTIFICATION]"}. Additionally, I am certified ${parsedData.certifications || "[NAME ADDITIONAL CERTIFICATIONS IF APPLICABLE]"}. It is with extreme enthusiasm that I apply to the ${jobDetails.position || "[NAME OF POSITION]"} with ${jobDetails.company || "[NAME OF COMPANY]"}.
 
-My name is ${parsedData.name || "[YOUR NAME HERE]"}. I obtained a ${parsedData.degree || "[DEGREE FROM WHERE]"}. I have been in ${parsedData.profession || "[NAME OF PROFESSION AND POSITION]"} by continuing my experience in ${parsedData.currentRole || "[NAME OF POSITION]"} to aid ${parsedData.currentCompany || "[NAME YOUR REASON]"}. I am excited for the position titled ${jobDetails.position || "[NAME OF POSITION]"} that have excellent and experience that are listed on your resume and most important certification. Additionally, I am certified ${parsedData.certifications || "[NAME ADDITIONAL CERTIFICATIONS & APPLICATIONS]"}. I am with extreme enthusiasm that I apply to the ${jobDetails.position || "[NAME OF POSITION]"} with ${jobDetails.company || "[NAME OF COMPANY]"}.
+I currently work ${parsedData.workArrangement || "[ONSITE, HYBRID, REMOTE]"} for ${parsedData.currentCompany || "[NAME OF COMPANY AND WHERE THE COMPANY IS LOCATED]"} with my remote location in ${parsedData.location || "[WHERE YOU WORK FROM]"}. In my position, ${parsedData.responsibilities || "[NAME THE MOST IMPORTANT THING YOU DO IN YOUR ROLE AND ITS FUNCTION]"}. By multitasking with these specific areas as well as ${parsedData.currentRole || "[RESTATE POSITION]"}, I am able to organize and balance my work to ensure I am giving the proper care to each of my ${parsedData.profession || "[NAME THE WORK]"} as well as my stakeholders and partners. With respect to my responsibilities, ${parsedData.responsibilities || "[NAME THE FIRST RESPONSIBILITY LISTED IN YOUR MOST RECENT/CURRENT JOB]"}. Relationship building staying organized is important within ${parsedData.profession || "[RESTATE THE PROFESSION]"}. By carefully vetting my work to ensure efficiency, I am consistently gaining trust amongst ${parsedData.profession || "[NAME WHO YOU BUILD TRUST WITH]"}. I maintain an ${parsedData.tools || "[NAME HOW YOU STAY ORGANIZED]"}.
 
-[This second paragraph is for you to talk about enthusiasm that I apply to current or most recent role]
+[NAME ADDITIONAL RELEVANT EXPERIENCE AND FOLLOW THE SAME FORMAT AS THE PARAGRAPH ABOVE. THIS PARAGRAPH WON'T BE AS LENGTHY. DEPENDING ON YOUR EXPERIENCE LEVEL AND THE POSITION YOU ARE APPLYING TO. YOU MAY NOT NEED THIS PARAGRAPH. USE YOUR DISCRETION]
 
-My current role where I was employed with was [ELABORATE WHERE THE COMPANY IS LOCATED] with my remote location in ${parsedData.location || "[WHERE YOU WORK FROM]"}. In my position, ${parsedData.responsibilities || "[NAME THE MOST IMPORTANT THINGS YOU DO IN YOUR ROLE]"} and in these specific areas as well as [RESTATE POSITION], I am able to organize and balance my work to ensure I am getting the proper rest to take care of my stakeholders and partners, with respect to my responsibilities, [NAME THE FIRST RESPONSIBILITY LISTED ON YOUR RESUME](currently [COURSES]/[CLIENTS]). Furthermore, including myself me in [RESPONSIBLE IN THE INDUSTRY, HOW YOU STAY ORGANIZED]. I maintain an [NAME HOW YOU STAY ORGANIZED].
-
-[This third paragraph provides room for you to add one more relevant position to explain to enlighten the recruiter, interviewer or hiring manager. Since your second paragraph is fairly long, keep this short-- 3 sentences at most.]
-
-${parsedData.experience ? `I have ${parsedData.experience} of experience in ${parsedData.profession}.` : "[NAME ADDITIONAL RELEVANT EXPERIENCE AND FOLLOW THE SAME FORMAT AS THE PARAGRAPH ABOVE. THIS PARAGRAPH WON'T BE AS LENGTHY. DEPENDING ON YOUR EXPERIENCE LEVEL AND THE POSITION YOU ARE APPLYING TO. YOU MAY NOT NEED THIS PARAGRAPH USE YOUR DISCRETION]"}
-
-[This last paragraph is your conclusion—time to wrap it up!]
-
-Due to my experience and desire to work remote and locally at your ${jobDetails.company || "[NAME OF COMPANY]"}, choosing me will be a great decision as I will bring expertise and a wealth of knowledge into your company. It can be reached at ${parsedData.phone || "[PHONE NUMBER]"} or ${parsedData.email || "[EMAIL]"}. Thank you for your consideration. I look forward to hearing from you.
+Based upon my experience, I am an ideal candidate for your ${jobDetails.position || "[NAME OF POSITION]"} within ${jobDetails.company || "[NAME OF COMPANY]"}. Choosing me will be a great decision as I will bring expertise and a wealth of knowledge into your company. I can be reached at ${parsedData.phone || "[PHONE NUMBER]"} or ${parsedData.email || "[EMAIL]"}. Thank you for your consideration. I look forward to hearing from you.
 
 Respectfully Submitted,
 [YOUR SIGNATURE HERE]`;
@@ -1186,21 +1176,13 @@ Respectfully Submitted,
 [Date]
 To Whom It May Concern:
 
-[This first paragraph is your introduction to the person reading this. Depending on if your applying, you may use the first or second language template. Keep all critical lines within this pivot. This means you will not add pivotal language instead of saying "additionally, I am certified in..."]
+My name is ${personalData.name}. I obtained a ${personalData.degree} from ${personalData.university}. I have been in ${personalData.profession} for ${personalData.yearsExperience} years and I plan to diversify and expand my knowledge in ${personalData.profession} by continuing my experience in ${jobDetails.position} to aid ${jobDetails.reason || "[NAME YOUR REASON]"}. I am qualified for this position because I have experience in ${personalData.skills}. Additionally, I am certified ${personalData.certifications}. It is with extreme enthusiasm that I apply to the ${jobDetails.position} with ${jobDetails.company}.
 
-My name is ${personalData.name}. I obtained a ${personalData.degree} from ${personalData.university}. I have been in ${personalData.profession} by continuing my experience in ${personalData.mainResponsibility} to aid ${personalData.currentCompany}. I am excited for the position titled ${jobDetails.position} that have excellent and experience that are listed on your resume and most important certification. Additionally, I am certified ${personalData.certifications}. I am with extreme enthusiasm that I apply to the ${jobDetails.position} with ${jobDetails.company}.
+I currently work ${personalData.workArrangement} for ${personalData.currentCompany} with my remote location in ${personalData.currentLocation}. In my position, ${personalData.topDuty}. By multitasking with these specific areas as well as ${personalData.mainResponsibility}, I am able to organize and balance my work to ensure I am giving the proper care to each of my ${personalData.profession} as well as my stakeholders and partners. With respect to my responsibilities, ${personalData.topDuty}. Relationship building staying organized is important within ${personalData.profession}. By carefully vetting my work to ensure efficiency, I am consistently gaining trust amongst ${personalData.profession}. I maintain an ${personalData.tools}.
 
-[This second paragraph is for you to talk about enthusiasm that I apply to current or most recent role]
+[NAME ADDITIONAL RELEVANT EXPERIENCE AND FOLLOW THE SAME FORMAT AS THE PARAGRAPH ABOVE. THIS PARAGRAPH WON'T BE AS LENGTHY. DEPENDING ON YOUR EXPERIENCE LEVEL AND THE POSITION YOU ARE APPLYING TO. YOU MAY NOT NEED THIS PARAGRAPH. USE YOUR DISCRETION]
 
-My current role where I was employed with was [ELABORATE WHERE THE COMPANY IS LOCATED] with my remote location in ${personalData.currentLocation}. In my position, ${personalData.topDuty} and in these specific areas as well as [RESTATE POSITION], I am able to organize and balance my work to ensure I am getting the proper rest to take care of my stakeholders and partners, with respect to my responsibilities, [NAME THE FIRST RESPONSIBILITY LISTED ON YOUR RESUME](currently [COURSES]/[CLIENTS]). Furthermore, including myself me in [RESPONSIBLE IN THE INDUSTRY, HOW YOU STAY ORGANIZED]. I maintain an [NAME HOW YOU STAY ORGANIZED].
-
-[This third paragraph provides room for you to add one more relevant position to explain to enlighten the recruiter, interviewer or hiring manager. Since your second paragraph is fairly long, keep this short-- 3 sentences at most.]
-
-I have ${personalData.yearsExperience} years of experience in ${personalData.profession}. My expertise includes ${personalData.skills} and proficiency with ${personalData.tools}.
-
-[This last paragraph is your conclusion—time to wrap it up!]
-
-Due to my experience and desire to work ${personalData.workArrangement} and locally at your ${jobDetails.company}, choosing me will be a great decision as I will bring expertise and a wealth of knowledge into your company. It can be reached at ${personalData.phone} or ${personalData.email}. Thank you for your consideration. I look forward to hearing from you.
+Based upon my experience, I am an ideal candidate for your ${jobDetails.position} within ${jobDetails.company}. Choosing me will be a great decision as I will bring expertise and a wealth of knowledge into your company. I can be reached at ${personalData.phone} or ${personalData.email}. Thank you for your consideration. I look forward to hearing from you.
 
 Respectfully Submitted,
 [YOUR SIGNATURE HERE]`;
