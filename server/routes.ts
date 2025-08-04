@@ -1314,6 +1314,334 @@ ${personalData.name}`;
     }
   });
 
+  // Resume PDF Generation endpoint
+  app.post("/api/generate-resume-pdf", async (req, res) => {
+    try {
+      const { templateId, resumeData } = req.body;
+      
+      if (!templateId || !resumeData) {
+        return res.status(400).json({ error: "Template ID and resume data are required" });
+      }
+
+      // Generate HTML content based on template
+      const htmlContent = generateResumeHTML(templateId, resumeData);
+      
+      // Launch puppeteer and generate PDF
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      // Generate PDF with proper formatting
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '0.5in',
+          right: '0.5in',
+          bottom: '0.5in',
+          left: '0.5in'
+        }
+      });
+      
+      await browser.close();
+      
+      // Set headers and send PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${resumeData.name || 'resume'}_${templateId}.pdf"`);
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      console.error("Error generating resume PDF:", error);
+      res.status(500).json({ error: "Failed to generate resume PDF" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Resume HTML template generation function
+function generateResumeHTML(templateId: string, resumeData: any): string {
+  const baseStyles = `
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; }
+      .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+      h1 { font-size: 2.5em; margin-bottom: 10px; }
+      h2 { font-size: 1.5em; margin: 20px 0 10px 0; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+      h3 { font-size: 1.2em; margin: 15px 0 5px 0; }
+      .header { text-align: center; margin-bottom: 30px; }
+      .contact-info { font-size: 0.9em; margin: 10px 0; }
+      .section { margin-bottom: 25px; }
+      .experience-item, .education-item { margin-bottom: 15px; }
+      .skills-list { display: flex; flex-wrap: wrap; gap: 10px; }
+      .skill-tag { background: #f0f0f0; padding: 5px 10px; border-radius: 5px; font-size: 0.9em; }
+    </style>
+  `;
+
+  switch (templateId) {
+    case 'modern':
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          ${baseStyles}
+          <style>
+            body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+            .container { background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+            h1 { color: #667eea; }
+            h2 { color: #667eea; border-bottom-color: #667eea; }
+            .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; margin: -20px -20px 30px -20px; padding: 30px 20px; border-radius: 10px 10px 0 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${resumeData.name || 'Your Name'}</h1>
+              <div class="contact-info">
+                <p>${resumeData.email || ''} | ${resumeData.phone || ''} | ${resumeData.location || ''}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Professional Summary</h2>
+              <p>${resumeData.profession || 'Professional'} with ${resumeData.experience || 'several years'} of experience in the industry.</p>
+            </div>
+
+            <div class="section">
+              <h2>Experience</h2>
+              <div class="experience-item">
+                <h3>${resumeData.profession || 'Your Position'} at ${resumeData.currentCompany || 'Company Name'}</h3>
+                <p><strong>Duration:</strong> ${resumeData.experience || 'Years of experience'}</p>
+                <p>Experienced professional with proven track record in ${resumeData.profession?.toLowerCase() || 'the field'}.</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Skills</h2>
+              <div class="skills-list">
+                ${(resumeData.skills || 'JavaScript, React, Node.js').split(',').map((skill: string) => 
+                  `<span class="skill-tag">${skill.trim()}</span>`
+                ).join('')}
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Education</h2>
+              <div class="education-item">
+                <h3>${resumeData.degree || 'Degree'}</h3>
+                <p>${resumeData.university || 'University Name'}</p>
+              </div>
+            </div>
+
+            ${resumeData.certifications ? `
+            <div class="section">
+              <h2>Certifications</h2>
+              <p>${resumeData.certifications}</p>
+            </div>
+            ` : ''}
+          </div>
+        </body>
+        </html>
+      `;
+
+    case 'classic':
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          ${baseStyles}
+          <style>
+            body { background: #f8f9fa; }
+            .container { background: white; border: 1px solid #ddd; }
+            h1 { color: #2c3e50; text-decoration: underline; }
+            h2 { color: #2c3e50; border-bottom-color: #2c3e50; }
+            .header { border-bottom: 3px solid #2c3e50; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${resumeData.name || 'Your Name'}</h1>
+              <div class="contact-info">
+                <p>${resumeData.email || ''} • ${resumeData.phone || ''} • ${resumeData.location || ''}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>OBJECTIVE</h2>
+              <p>Experienced ${resumeData.profession || 'Professional'} seeking to leverage ${resumeData.experience || 'extensive experience'} in a challenging new role.</p>
+            </div>
+
+            <div class="section">
+              <h2>PROFESSIONAL EXPERIENCE</h2>
+              <div class="experience-item">
+                <h3>${resumeData.profession || 'Your Position'}</h3>
+                <p><strong>${resumeData.currentCompany || 'Company Name'}</strong> | ${resumeData.experience || 'Years of experience'}</p>
+                <p>• Demonstrated expertise in ${resumeData.profession?.toLowerCase() || 'professional field'}</p>
+                <p>• Proven track record of successful project delivery and team collaboration</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>TECHNICAL SKILLS</h2>
+              <p>${resumeData.skills || 'JavaScript, React, Node.js, Python, SQL'}</p>
+            </div>
+
+            <div class="section">
+              <h2>EDUCATION</h2>
+              <div class="education-item">
+                <h3>${resumeData.degree || 'Degree'}</h3>
+                <p>${resumeData.university || 'University Name'}</p>
+              </div>
+            </div>
+
+            ${resumeData.certifications ? `
+            <div class="section">
+              <h2>CERTIFICATIONS</h2>
+              <p>${resumeData.certifications}</p>
+            </div>
+            ` : ''}
+          </div>
+        </body>
+        </html>
+      `;
+
+    case 'minimal':
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          ${baseStyles}
+          <style>
+            body { background: white; }
+            h1 { font-weight: 300; font-size: 2.2em; }
+            h2 { font-weight: 400; color: #555; border-bottom: 1px solid #eee; }
+            .skill-tag { background: white; border: 1px solid #ddd; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${resumeData.name || 'Your Name'}</h1>
+              <div class="contact-info">
+                <p>${resumeData.email || ''} | ${resumeData.phone || ''} | ${resumeData.location || ''}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Summary</h2>
+              <p>${resumeData.profession || 'Professional'} with ${resumeData.experience || 'several years'} of experience.</p>
+            </div>
+
+            <div class="section">
+              <h2>Experience</h2>
+              <div class="experience-item">
+                <h3>${resumeData.profession || 'Your Position'}</h3>
+                <p>${resumeData.currentCompany || 'Company Name'} • ${resumeData.experience || 'Duration'}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Skills</h2>
+              <div class="skills-list">
+                ${(resumeData.skills || 'JavaScript, React, Node.js').split(',').map((skill: string) => 
+                  `<span class="skill-tag">${skill.trim()}</span>`
+                ).join('')}
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Education</h2>
+              <p>${resumeData.degree || 'Degree'} • ${resumeData.university || 'University'}</p>
+            </div>
+
+            ${resumeData.certifications ? `
+            <div class="section">
+              <h2>Certifications</h2>
+              <p>${resumeData.certifications}</p>
+            </div>
+            ` : ''}
+          </div>
+        </body>
+        </html>
+      `;
+
+    case 'creative':
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          ${baseStyles}
+          <style>
+            body { background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4); }
+            .container { background: white; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+            h1 { color: #ff6b6b; font-weight: bold; }
+            h2 { color: #4ecdc4; border-bottom-color: #4ecdc4; }
+            .header { text-align: left; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; margin: -20px -20px 30px -20px; padding: 30px; border-radius: 15px 15px 0 0; }
+            .skill-tag { background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; border: none; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${resumeData.name || 'Your Name'}</h1>
+              <div class="contact-info">
+                <p>${resumeData.email || ''} • ${resumeData.phone || ''} • ${resumeData.location || ''}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Creative Profile</h2>
+              <p>Innovative ${resumeData.profession || 'Creative Professional'} with ${resumeData.experience || 'extensive experience'} bringing fresh perspectives to every project.</p>
+            </div>
+
+            <div class="section">
+              <h2>Professional Journey</h2>
+              <div class="experience-item">
+                <h3>${resumeData.profession || 'Your Position'}</h3>
+                <p><strong>${resumeData.currentCompany || 'Creative Studio'}</strong></p>
+                <p>${resumeData.experience || 'Years of creative experience'}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Creative Skills</h2>
+              <div class="skills-list">
+                ${(resumeData.skills || 'Design, Creativity, Innovation').split(',').map((skill: string) => 
+                  `<span class="skill-tag">${skill.trim()}</span>`
+                ).join('')}
+              </div>
+            </div>
+
+            <div class="section">
+              <h2>Education & Growth</h2>
+              <div class="education-item">
+                <h3>${resumeData.degree || 'Creative Degree'}</h3>
+                <p>${resumeData.university || 'Design Institute'}</p>
+              </div>
+            </div>
+
+            ${resumeData.certifications ? `
+            <div class="section">
+              <h2>Certifications & Awards</h2>
+              <p>${resumeData.certifications}</p>
+            </div>
+            ` : ''}
+          </div>
+        </body>
+        </html>
+      `;
+
+    default:
+      return generateResumeHTML('modern', resumeData);
+  }
 }
