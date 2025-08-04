@@ -650,26 +650,48 @@ Requirements:
     const phoneMatch = resumeText.match(/(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
     data.phone = phoneMatch ? phoneMatch[0] : "";
     
-    // Extract name (typically first line or after "Name:" label)
+    // Enhanced name extraction - look for patterns that indicate names
     const lines = resumeText.split('\n').filter(line => line.trim().length > 0);
-    const namePatterns = [
-      /^Name:\s*(.+)$/i,
-      /^(.+)$/  // First non-empty line if no explicit name label
-    ];
+    let extractedName = "";
     
-    for (const line of lines.slice(0, 5)) { // Check first 5 lines
-      for (const pattern of namePatterns) {
-        const match = line.match(pattern);
-        if (match && match[1] && 
-            !match[1].includes('@') && 
-            !match[1].match(/\d{3}/) && 
-            match[1].split(' ').length >= 2) {
-          data.name = match[1].trim();
+    // Try multiple patterns for name extraction
+    for (const line of lines.slice(0, 6)) { // Check first 6 lines
+      const cleanLine = line.trim();
+      
+      // Skip lines with email, phone, or obvious non-name content
+      if (cleanLine.includes('@') || 
+          cleanLine.match(/\d{3}/) || 
+          cleanLine.toLowerCase().includes('resume') ||
+          cleanLine.toLowerCase().includes('cv') ||
+          cleanLine.length < 3 ||
+          cleanLine.length > 50) {
+        continue;
+      }
+      
+      // Look for name patterns
+      const nameMatch = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
+      if (nameMatch && nameMatch[1].split(' ').length >= 2) {
+        extractedName = nameMatch[1].trim();
+        break;
+      }
+      
+      // Check for "Name:" label
+      const labelMatch = cleanLine.match(/^Name:\s*(.+)$/i);
+      if (labelMatch && labelMatch[1]) {
+        extractedName = labelMatch[1].trim();
+        break;
+      }
+      
+      // If nothing else works, use first line that looks like a name
+      if (!extractedName && cleanLine.split(' ').length >= 2 && cleanLine.split(' ').length <= 4) {
+        const words = cleanLine.split(' ');
+        if (words.every(word => word[0] && word[0].toUpperCase() === word[0])) {
+          extractedName = cleanLine;
           break;
         }
       }
-      if (data.name) break;
     }
+    data.name = extractedName || "Your Name";
     
     // Extract education
     const educationKeywords = /(?:bachelor|master|phd|degree|university|college|graduated|education)/i;
@@ -753,8 +775,20 @@ Requirements:
           // Parse TXT files
           resumeText = fs.readFileSync(filePath, 'utf8');
         } else if (req.file.mimetype === 'application/pdf') {
-          // PDF parsing is temporarily unavailable
-          resumeText = "PDF parsing is currently unavailable. Please convert your PDF to .txt, .doc, or .docx format and try again.";
+          // Basic PDF support - suggest manual conversion for better results
+          try {
+            // Try basic text extraction by converting to string and looking for readable text
+            const pdfString = dataBuffer.toString('utf8');
+            // Look for common text patterns in PDF
+            const textMatch = pdfString.match(/[A-Za-z\s@\.\-\+\(\)]{20,}/g);
+            if (textMatch && textMatch.length > 0) {
+              resumeText = textMatch.join(' ').replace(/\s+/g, ' ').trim();
+            } else {
+              resumeText = "Unable to extract text from this PDF. For best results, please save your PDF as a .txt file (File → Save As → Text) or upload a .docx version.";
+            }
+          } catch (error) {
+            resumeText = "PDF processing failed. Please convert your PDF to .txt format (File → Save As → Plain Text) and upload again.";
+          }
         } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
           // Parse DOCX files
           try {
