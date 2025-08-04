@@ -343,8 +343,82 @@ export default function ResumeBuilder() {
             onClick={() => setSelectedTemplate(template.id)}
           >
             <CardContent className="p-6">
-              <div className="aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
-                <FileText className="w-12 h-12 text-gray-400" />
+              <div className="aspect-[3/4] bg-white rounded-lg mb-4 border border-gray-200 overflow-hidden">
+                {template.id === 'professional' && (
+                  <div className="w-full h-full p-3 text-xs">
+                    <div className="text-center border-b-2 border-blue-500 pb-2 mb-2">
+                      <div className="font-bold text-lg">John Doe</div>
+                      <div className="text-gray-600">Software Engineer</div>
+                      <div className="text-xs">john@email.com | (555) 123-4567</div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-blue-600">PROFESSIONAL SUMMARY</div>
+                      <div className="h-2 bg-gray-200 rounded"></div>
+                      <div className="h-1 bg-gray-200 rounded w-3/4"></div>
+                      <div className="font-semibold text-blue-600 mt-3">EXPERIENCE</div>
+                      <div className="h-1 bg-gray-200 rounded"></div>
+                      <div className="h-1 bg-gray-200 rounded w-2/3"></div>
+                      <div className="font-semibold text-blue-600 mt-3">SKILLS</div>
+                      <div className="flex gap-1">
+                        <div className="h-1 bg-blue-200 rounded w-8"></div>
+                        <div className="h-1 bg-blue-200 rounded w-6"></div>
+                        <div className="h-1 bg-blue-200 rounded w-10"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {template.id === 'harvard' && (
+                  <div className="w-full h-full p-3 text-xs font-serif">
+                    <div className="text-center mb-3">
+                      <div className="font-bold text-lg">JOHN DOE</div>
+                      <div className="text-gray-600">123 Main St | john@email.com</div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-bold underline">EDUCATION</div>
+                      <div className="h-1 bg-gray-200 rounded"></div>
+                      <div className="h-1 bg-gray-200 rounded w-3/4"></div>
+                      <div className="font-bold underline mt-3">EXPERIENCE</div>
+                      <div className="h-1 bg-gray-200 rounded"></div>
+                      <div className="h-1 bg-gray-200 rounded w-2/3"></div>
+                      <div className="font-bold underline mt-3">SKILLS</div>
+                      <div className="grid grid-cols-2 gap-1">
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {template.id === 'creative' && (
+                  <div className="w-full h-full flex">
+                    <div className="w-2/5 bg-blue-900 text-white p-2 text-xs">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full mx-auto mb-1"></div>
+                      <div className="text-center font-bold mb-2">CONTACT</div>
+                      <div className="space-y-1">
+                        <div className="h-1 bg-blue-300 rounded"></div>
+                        <div className="h-1 bg-blue-300 rounded w-3/4"></div>
+                      </div>
+                      <div className="text-center font-bold mt-2 mb-1">SKILLS</div>
+                      <div className="space-y-1">
+                        <div className="h-1 bg-blue-300 rounded"></div>
+                        <div className="h-1 bg-blue-300 rounded w-2/3"></div>
+                      </div>
+                    </div>
+                    <div className="w-3/5 p-2 text-xs">
+                      <div className="font-bold text-lg mb-1">John Doe</div>
+                      <div className="text-gray-600 mb-2">Creative Designer</div>
+                      <div className="font-semibold mb-1">PROFILE</div>
+                      <div className="space-y-1">
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                        <div className="h-1 bg-gray-200 rounded w-3/4"></div>
+                      </div>
+                      <div className="font-semibold mt-2 mb-1">EXPERIENCE</div>
+                      <div className="space-y-1">
+                        <div className="h-1 bg-gray-200 rounded"></div>
+                        <div className="h-1 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
