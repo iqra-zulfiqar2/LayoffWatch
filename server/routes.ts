@@ -992,7 +992,7 @@ Requirements:
         const profileName = profileSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         
         const fallbackProfileData = {
-          name: profileName || 'Professional Profile',
+          name: profileName && profileName !== 'Professional' ? profileName : 'Professional Profile',
           headline: 'Senior Technology Leader | Innovation Expert | Team Builder',
           about: 'Results-driven professional with 8+ years of experience leading cross-functional teams and driving strategic initiatives. Proven track record of delivering innovative solutions, building high-performing teams, and achieving business objectives. Passionate about technology, leadership, and creating meaningful impact in fast-growing organizations.',
           location: 'San Francisco Bay Area',

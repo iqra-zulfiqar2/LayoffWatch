@@ -276,12 +276,14 @@ export default function LinkedInOptimizer() {
       const data = await response.json();
       console.log('Received profile data:', data); // Debug log
       
-      // If we get empty data, enhance it with better fallback
+      // If we get empty data, enhance it with better fallback but preserve any extracted name
       let profileDataToSet = data.profileData;
+      const extractedName = profileDataToSet.name && profileDataToSet.name !== "Join LinkedIn" ? profileDataToSet.name : null;
+      
       if (!profileDataToSet.name || profileDataToSet.name === "Join LinkedIn") {
         profileDataToSet = {
           ...profileDataToSet,
-          name: "Professional Profile",
+          name: extractedName || "Professional Profile",
           headline: "Industry Professional | Expert in Your Field",
           about: "Experienced professional with expertise in driving business results and leading teams. Passionate about innovation, growth, and making meaningful impact in the industry.",
           location: "Professional Location",
@@ -435,6 +437,16 @@ export default function LinkedInOptimizer() {
                     {/* Profile Data Display */}
                     {profileData && (
                       <div className="space-y-6">
+                        {/* User Name Display */}
+                        {profileData.name && profileData.name !== "Professional Profile" && (
+                          <div className="text-center py-4">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                              {profileData.name}
+                            </h2>
+                            <p className="text-gray-600">LinkedIn Profile Analysis</p>
+                          </div>
+                        )}
+                        
                         {/* Profile Header */}
                         <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50">
                           <div className="flex items-start space-x-4">
@@ -446,7 +458,9 @@ export default function LinkedInOptimizer() {
                               />
                             )}
                             <div className="flex-1">
-                              <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
+                              <h3 className="text-xl font-semibold text-gray-900">
+                                {profileData.name === "Professional Profile" ? "Profile Overview" : profileData.name}
+                              </h3>
                               <p className="text-sm text-gray-500">{profileData.location}</p>
                               {profileData.connectionCount && (
                                 <p className="text-sm text-blue-600">{profileData.connectionCount}</p>
