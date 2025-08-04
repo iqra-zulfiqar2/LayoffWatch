@@ -1,8 +1,8 @@
-# CareerTools Pro - Replit Development Guide
+# Layoff Proof - Replit Development Guide
 
 ## Overview
 
-CareerTools Pro is a comprehensive career advancement platform designed to empower professionals through their career journey. It features six distinct AI-powered tools: Layoff Tracker, Resume Builder, Cover Letter Generator, Interview Preparation, LinkedIn Optimizer, and Recruiter Outreach Script Generator. The platform's vision is to provide an all-in-one solution for career navigation, leveraging AI for personalization and efficiency. It aims to become a leading resource in the career development market, offering a competitive edge through its integrated suite of tools and a focus on user experience.
+Layoff Proof is a comprehensive career advancement platform designed to empower professionals through their career journey. It features six distinct AI-powered tools: Layoff Tracker, Resume Builder, Cover Letter Generator, Interview Preparation, LinkedIn Optimizer, and Recruiter Outreach Script Generator. The platform's vision is to provide an all-in-one solution for career navigation, leveraging AI for personalization and efficiency. It aims to become a leading resource in the career development market, offering a competitive edge through its integrated suite of tools and a focus on user experience.
 
 ## User Preferences
 
@@ -13,7 +13,7 @@ Preferred communication style: Simple, everyday language.
 The application is built as a monorepo, separating client, server, and shared code.
 
 ### UI/UX Decisions
-- **Branding**: Rebranded as "ElevateJobs" with a light color scheme using blue/purple gradients.
+- **Branding**: Rebranded as "Layoff Proof" with a light color scheme using blue/purple gradients.
 - **Global Components**: Consistent global header and footer for navigation and information.
 - **Tool Cards**: Gradient-based tool cards with icons, descriptions, and status badges (Free/Premium/Coming Soon), featuring hover effects.
 - **Forms & Templates**: Professional templates for Resume Builder and Cover Letter Generator with structured formats.

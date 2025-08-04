@@ -125,7 +125,7 @@ export default function AuthLanding() {
                 <TrendingDown className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                LayoffTracker
+                Layoff Proof
               </h1>
             </div>
             <div className="flex items-center space-x-4">

@@ -222,7 +222,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-8">
               <Link href="/">
-                <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">LayoffTracker Admin</h1>
+                <h1 className="text-2xl font-bold text-gray-900 cursor-pointer">Layoff Proof Admin</h1>
               </Link>
               <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                 <Shield className="w-3 h-3 mr-1" />

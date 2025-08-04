@@ -13,7 +13,7 @@ export default function Landing() {
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-slate-900">LayoffTracker</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Layoff Proof</h1>
             <Button onClick={handleLogin} className="bg-primary hover:bg-primary/90">
               Sign In
             </Button>

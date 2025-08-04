@@ -108,7 +108,7 @@ export default function GlobalHeader() {
               <div className="p-1.5 rounded-lg bg-blue-600 text-white">
                 <Shield className="w-6 h-6" />
               </div>
-              <span className="text-xl font-bold text-gray-900">ElevateJobs</span>
+              <span className="text-xl font-bold text-gray-900">Layoff Proof</span>
             </Link>
           </div>
 
@@ -148,9 +148,6 @@ export default function GlobalHeader() {
             <Link href="/pricing" className="text-gray-700 hover:text-blue-600 font-medium">
               Pricing
             </Link>
-            <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">
-              About
-            </a>
             <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">
               Contact
             </a>
@@ -214,9 +211,6 @@ export default function GlobalHeader() {
                 <Link href="/pricing" className="block py-2 text-gray-700 hover:text-blue-600">
                   Pricing
                 </Link>
-                <a href="#" className="block py-2 text-gray-700 hover:text-blue-600">
-                  About
-                </a>
                 <a href="#" className="block py-2 text-gray-700 hover:text-blue-600">
                   Contact
                 </a>
