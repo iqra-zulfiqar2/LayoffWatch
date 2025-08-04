@@ -14,6 +14,8 @@ import path from "path";
 import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
 import axios from "axios";
+import mammoth from "mammoth";
+import docxParser from "docx-parser";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
@@ -747,12 +749,38 @@ Requirements:
       if (req.file.mimetype === 'text/plain') {
         resumeText = fs.readFileSync(filePath, 'utf8');
       } else if (req.file.mimetype === 'application/pdf') {
-        // For PDF files, we'll return a placeholder for now
-        // In production, you'd use a PDF parsing library like pdf-parse
-        resumeText = "PDF content would be extracted here. Please use a .txt file for now.";
+        // Parse PDF files
+        try {
+          const pdfParse = (await import("pdf-parse")).default;
+          const dataBuffer = fs.readFileSync(filePath);
+          const pdfData = await pdfParse(dataBuffer);
+          resumeText = pdfData.text;
+        } catch (error) {
+          console.error("Error parsing PDF:", error);
+          resumeText = "Error parsing PDF file. Please try with a different format.";
+        }
+      } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        // Parse DOCX files
+        try {
+          const dataBuffer = fs.readFileSync(filePath);
+          const result = await mammoth.extractRawText({ buffer: dataBuffer });
+          resumeText = result.value;
+        } catch (error) {
+          console.error("Error parsing DOCX:", error);
+          resumeText = "Error parsing DOCX file. Please try with a different format.";
+        }
+      } else if (req.file.mimetype === 'application/msword') {
+        // Parse DOC files
+        try {
+          const dataBuffer = fs.readFileSync(filePath);
+          const docText = await docxParser.parseDocx(dataBuffer);
+          resumeText = docText;
+        } catch (error) {
+          console.error("Error parsing DOC:", error);
+          resumeText = "Error parsing DOC file. Please try with a different format.";
+        }
       } else {
-        // For Word documents, return placeholder
-        resumeText = "Word document content would be extracted here. Please use a .txt file for now.";
+        resumeText = "Unsupported file format. Please use .txt, .pdf, .doc, or .docx files.";
       }
 
       // Clean up uploaded file
@@ -1176,23 +1204,26 @@ ${yourName}`;
         // Parse resume to extract key information
         const parsedData = parseResumeText(resumeText);
         
-        // Generate cover letter using parsed resume data with the new template format
+        // Generate cover letter using parsed resume data with the new template format from user's image
         coverLetter = `                                                                                                                        ${(parsedData.name || "NAME").toUpperCase()}
                                                                                                                         COVER LETTER
 
 [Date]
 To Whom It May Concern:
 
-My name is ${parsedData.name || "[YOUR NAME HERE]"}. I obtained a ${parsedData.degree || "[DEGREE FROM WHERE]"}. I have been in ${parsedData.profession || "[NAME OF PROFESSION AND HOW MANY YEARS]"} and I plan to diversify and expand my knowledge in ${parsedData.profession || "[NAME OF PROFESSION]"} by continuing my experience in ${jobDetails.position || "[NAME OF POSITION]"} to aid ${jobDetails.reason || "[NAME YOUR REASON]"}. I am qualified for this position because I have experience in ${parsedData.skills || "[NAME HARD SKILLS THAT ARE LISTED ON YOUR RESUME AND MOST IMPORTANT CERTIFICATION]"}. Additionally, I am certified ${parsedData.certifications || "[NAME ADDITIONAL CERTIFICATIONS IF APPLICABLE]"}. It is with extreme enthusiasm that I apply to the ${jobDetails.position || "[NAME OF POSITION]"} with ${jobDetails.company || "[NAME OF COMPANY]"}.
+I'm writing to express my strong interest in the ${jobDetails.position || "[Job Title]"} position at ${jobDetails.company || "[Company Name]"}. With a ${parsedData.degree || "[Your Degree]"} from ${parsedData.university || "[University Name]"} and over ${parsedData.experience || "[X years]"} of experience in ${parsedData.profession || "[Your Profession/Industry]"}, I am excited about the opportunity to bring my skills and insights to your team.
 
-I currently work ${parsedData.workArrangement || "[ONSITE, HYBRID, REMOTE]"} for ${parsedData.currentCompany || "[NAME OF COMPANY AND WHERE THE COMPANY IS LOCATED]"} with my remote location in ${parsedData.location || "[WHERE YOU WORK FROM]"}. In my position, ${parsedData.responsibilities || "[NAME THE MOST IMPORTANT THING YOU DO IN YOUR ROLE AND ITS FUNCTION]"}. By multitasking with these specific areas as well as ${parsedData.currentRole || "[RESTATE POSITION]"}, I am able to organize and balance my work to ensure I am giving the proper care to each of my ${parsedData.profession || "[NAME THE WORK]"} as well as my stakeholders and partners. With respect to my responsibilities, ${parsedData.responsibilities || "[NAME THE FIRST RESPONSIBILITY LISTED IN YOUR MOST RECENT/CURRENT JOB]"}. Relationship building staying organized is important within ${parsedData.profession || "[RESTATE THE PROFESSION]"}. By carefully vetting my work to ensure efficiency, I am consistently gaining trust amongst ${parsedData.profession || "[NAME WHO YOU BUILD TRUST WITH]"}. I maintain an ${parsedData.tools || "[NAME HOW YOU STAY ORGANIZED]"}.
+Currently, I work in a ${parsedData.workArrangement || "[onsite / hybrid / remote]"} capacity at ${parsedData.currentCompany || "[Current Employer]"}, based in ${parsedData.location || "[Location]"}, where I specialize in ${parsedData.responsibilities || "[Brief Description of Core Responsibilities]"}. In this role, I've been recognized for my ability to ${parsedData.achievements || "[mention a key achievement, measurable result, or responsibility]"}, all while managing priorities across departments and maintaining strong relationships with stakeholders.
 
-[NAME ADDITIONAL RELEVANT EXPERIENCE AND FOLLOW THE SAME FORMAT AS THE PARAGRAPH ABOVE. THIS PARAGRAPH WON'T BE AS LENGTHY. DEPENDING ON YOUR EXPERIENCE LEVEL AND THE POSITION YOU ARE APPLYING TO. YOU MAY NOT NEED THIS PARAGRAPH. USE YOUR DISCRETION]
+What sets me apart is my background in ${parsedData.skills || "[Highlight Specific Hard Skills or Certifications]"}, along with certifications such as ${parsedData.certifications || "[List Most Relevant Certifications]"}. I am known for my organizational skills, attention to detail, and ability to collaborate across teams to deliver results that align with business goals.
 
-Based upon my experience, I am an ideal candidate for your ${jobDetails.position || "[NAME OF POSITION]"} within ${jobDetails.company || "[NAME OF COMPANY]"}. Choosing me will be a great decision as I will bring expertise and a wealth of knowledge into your company. I can be reached at ${parsedData.phone || "[PHONE NUMBER]"} or ${parsedData.email || "[EMAIL]"}. Thank you for your consideration. I look forward to hearing from you.
+I'm particularly drawn to this opportunity because of ${jobDetails.reason || "[mention something specific about the company, its mission, or the role that resonates with you]"}. I believe my experience and passion for ${parsedData.profession || "[industry/profession]"} will allow me to contribute meaningfully to your team.
 
-Respectfully Submitted,
-[YOUR SIGNATURE HERE]`;
+Thank you for considering my application. I would welcome the opportunity to further discuss how my background and enthusiasm for this role align with ${jobDetails.company || "[Company Name]"}'s goals. You can reach me at ${parsedData.phone || "[Phone Number]"} or ${parsedData.email || "[Email Address]"}. I look forward to hearing from you.
+
+Warm regards,
+
+${parsedData.name || "[Your Full Name]"}`;
 
       } else if (method === "manual" && personalData && jobDetails) {
         // Generate cover letter using manual data
@@ -1204,16 +1235,19 @@ Respectfully Submitted,
 [Date]
 To Whom It May Concern:
 
-My name is ${personalData.name}. I obtained a ${personalData.degree} from ${personalData.university}. I have been in ${personalData.profession} for ${personalData.yearsExperience} years and I plan to diversify and expand my knowledge in ${personalData.profession} by continuing my experience in ${jobDetails.position} to aid ${jobDetails.reason || "[NAME YOUR REASON]"}. I am qualified for this position because I have experience in ${personalData.skills}. Additionally, I am certified ${personalData.certifications}. It is with extreme enthusiasm that I apply to the ${jobDetails.position} with ${jobDetails.company}.
+I'm writing to express my strong interest in the ${jobDetails.position} position at ${jobDetails.company}. With a ${personalData.degree} from ${personalData.university} and over ${personalData.yearsExperience} years of experience in ${personalData.profession}, I am excited about the opportunity to bring my skills and insights to your team.
 
-I currently work ${personalData.workArrangement} for ${personalData.currentCompany} with my remote location in ${personalData.currentLocation}. In my position, ${personalData.topDuty}. By multitasking with these specific areas as well as ${personalData.mainResponsibility}, I am able to organize and balance my work to ensure I am giving the proper care to each of my ${personalData.profession} as well as my stakeholders and partners. With respect to my responsibilities, ${personalData.topDuty}. Relationship building staying organized is important within ${personalData.profession}. By carefully vetting my work to ensure efficiency, I am consistently gaining trust amongst ${personalData.profession}. I maintain an ${personalData.tools}.
+Currently, I work in a ${personalData.workArrangement} capacity at ${personalData.currentCompany}, based in ${personalData.currentLocation}, where I specialize in ${personalData.mainResponsibility}. In this role, I've been recognized for my ability to ${personalData.topDuty}, all while managing priorities across departments and maintaining strong relationships with stakeholders.
 
-[NAME ADDITIONAL RELEVANT EXPERIENCE AND FOLLOW THE SAME FORMAT AS THE PARAGRAPH ABOVE. THIS PARAGRAPH WON'T BE AS LENGTHY. DEPENDING ON YOUR EXPERIENCE LEVEL AND THE POSITION YOU ARE APPLYING TO. YOU MAY NOT NEED THIS PARAGRAPH. USE YOUR DISCRETION]
+What sets me apart is my background in ${personalData.skills}, along with certifications such as ${personalData.certifications}. I am known for my organizational skills, attention to detail, and ability to collaborate across teams to deliver results that align with business goals.
 
-Based upon my experience, I am an ideal candidate for your ${jobDetails.position} within ${jobDetails.company}. Choosing me will be a great decision as I will bring expertise and a wealth of knowledge into your company. I can be reached at ${personalData.phone} or ${personalData.email}. Thank you for your consideration. I look forward to hearing from you.
+I'm particularly drawn to this opportunity because of ${jobDetails.reason}. I believe my experience and passion for ${personalData.profession} will allow me to contribute meaningfully to your team.
 
-Respectfully Submitted,
-[YOUR SIGNATURE HERE]`;
+Thank you for considering my application. I would welcome the opportunity to further discuss how my background and enthusiasm for this role align with ${jobDetails.company}'s goals. You can reach me at ${personalData.phone} or ${personalData.email}. I look forward to hearing from you.
+
+Warm regards,
+
+${personalData.name}`;
       } else {
         return res.status(400).json({ error: "Invalid request data" });
       }
