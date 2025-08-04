@@ -59,29 +59,36 @@ export default function RecruiterOutreach() {
   const generateMessage = async () => {
     setIsGenerating(true);
     
-    // Simulate AI generation
-    setTimeout(() => {
-      let sampleMessage = "";
-      
+    try {
       if (activeTab === "linkedin-dm") {
-        sampleMessage = `Hi ${recruiterName || "[Recruiter Name]"},
+        // Call the backend API for LinkedIn DM generation
+        const response = await fetch("/api/generate-linkedin-dm", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            recruiterName: recruiterName || "[Recruiter's Name]",
+            yourName: yourName || "[Your Name]",
+            companyName: companyName || "[Company Name]"
+          }),
+        });
 
-I hope this message finds you well. I came across your profile and noticed that you're recruiting for ${jobTitle || "[Position]"} roles at ${companyName || "[Company]"}.
+        if (!response.ok) {
+          throw new Error("Failed to generate LinkedIn DM");
+        }
 
-I'm a ${yourRole || "[Your Role]"} with ${experience || "[X years]"} of experience in ${industry || "[Industry]"}. I'm particularly interested in opportunities at ${companyName || "[Company]"} because of [specific reason about the company].
-
-Key highlights of my background:
-• [Relevant skill/achievement 1]
-• [Relevant skill/achievement 2]  
-• [Relevant skill/achievement 3]
-
-I'd love to learn more about current openings and discuss how my experience could contribute to your team. Would you be open to a brief conversation?
-
-Thank you for your time, and I look forward to hearing from you.
-
-Best regards,
-${yourName || "[Your Name]"}`;
-      } else if (activeTab === "email") {
+        const data = await response.json();
+        setGeneratedMessage(data.linkedinDM);
+        setIsGenerating(false);
+        return;
+      }
+      
+      // Keep existing logic for other message types
+      setTimeout(() => {
+        let sampleMessage = "";
+        
+        if (activeTab === "email") {
         sampleMessage = `Subject: Experienced ${yourRole || "[Your Role]"} interested in ${companyName || "[Company]"} opportunities
 
 Dear ${recruiterName || "[Recruiter Name]"},
@@ -118,9 +125,14 @@ Thanks so much!
 ${yourName || "[Your Name]"}`;
       }
       
-      setGeneratedMessage(sampleMessage);
+        setGeneratedMessage(sampleMessage);
+        setIsGenerating(false);
+      }, 2500);
+    } catch (error) {
+      console.error("Error generating message:", error);
+      setGeneratedMessage("Error generating message. Please try again.");
       setIsGenerating(false);
-    }, 2500);
+    }
   };
 
   const copyToClipboard = () => {

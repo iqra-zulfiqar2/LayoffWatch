@@ -1137,6 +1137,34 @@ Requirements:
     }
   });
 
+  // LinkedIn DM Generation endpoint
+  app.post("/api/generate-linkedin-dm", async (req, res) => {
+    try {
+      const { recruiterName, yourName, companyName } = req.body;
+      
+      if (!recruiterName || !yourName || !companyName) {
+        return res.status(400).json({ error: "Recruiter name, your name, and company name are required" });
+      }
+
+      // Generate LinkedIn DM using the exact template format
+      const linkedinDM = `Hi ${recruiterName},
+
+I hope you're doing well. My name is ${yourName}, and I recently applied to several roles at ${companyName}. I wanted to reach out in case you might be able to help or point me in the right direction.
+
+I understand you may not be the hiring manager for these positions, but I would truly appreciate it if you could share my profile with the relevant team or let me know the best way to ensure my application is seen by the right people.
+
+I completely understand if you're limited in what you can share or if time doesn't permit a response. Thank you for your time and consideration, I really admire the work being done at ${companyName} and would love the opportunity to contribute.
+
+Warm regards,
+${yourName}`;
+
+      res.json({ linkedinDM });
+    } catch (error) {
+      console.error("Error generating LinkedIn DM:", error);
+      res.status(500).json({ error: "Failed to generate LinkedIn DM" });
+    }
+  });
+
   // Enhanced cover letter generation endpoint with resume parsing
   app.post("/api/generate-cover-letter", async (req, res) => {
     try {
