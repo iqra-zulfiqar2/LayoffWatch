@@ -73,7 +73,17 @@ export default function ResumeBuilder() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('resume', file);
-      const response = await apiRequest('POST', '/api/upload-resume', formData);
+      
+      // Use fetch directly for file uploads instead of apiRequest
+      const response = await fetch('/api/upload-resume', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
@@ -85,9 +95,10 @@ export default function ResumeBuilder() {
       });
     },
     onError: (error) => {
+      console.error("Upload error:", error);
       toast({
         title: "Upload Failed",
-        description: "Failed to process your resume. Please try again.",
+        description: error.message || "Failed to process your resume. Please try again.",
         variant: "destructive",
       });
     },
@@ -130,9 +141,20 @@ export default function ResumeBuilder() {
   };
 
   const handleExtractInformation = () => {
+    console.log("Extract information clicked");
+    console.log("Selected file:", selectedFile);
+    
     if (selectedFile) {
+      console.log("Starting upload for file:", selectedFile.name, selectedFile.type, selectedFile.size);
       setIsProcessing(true);
       uploadMutation.mutate(selectedFile);
+    } else {
+      console.log("No file selected");
+      toast({
+        title: "No File Selected",
+        description: "Please select a file first.",
+        variant: "destructive",
+      });
     }
   };
 

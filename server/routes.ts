@@ -782,9 +782,21 @@ Requirements:
   // File upload endpoint for resume processing
   app.post("/api/upload-resume", upload.single('resume'), async (req, res) => {
     try {
+      console.log("File upload request received");
+      console.log("Request file:", req.file);
+      console.log("Request body:", req.body);
+      
       if (!req.file) {
+        console.log("No file found in request");
         return res.status(400).json({ error: "No file uploaded" });
       }
+      
+      console.log("File details:", {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
 
       const filePath = req.file.path;
       let resumeText = "";
