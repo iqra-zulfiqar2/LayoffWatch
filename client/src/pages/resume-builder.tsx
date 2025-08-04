@@ -32,30 +32,23 @@ interface ResumeTemplate {
 
 const resumeTemplates: ResumeTemplate[] = [
   {
-    id: 'modern',
-    name: 'Modern Professional',
+    id: 'professional',
+    name: 'Professional Blue',
     description: 'Clean design with blue accents, perfect for tech and business roles',
-    preview: '/api/template-preview/modern',
+    preview: '/api/template-preview/professional',
     style: 'modern'
   },
   {
-    id: 'classic',
-    name: 'Classic Executive',
-    description: 'Traditional layout ideal for senior positions and corporate roles',
-    preview: '/api/template-preview/classic',
+    id: 'harvard',
+    name: 'Harvard Classic',
+    description: 'Traditional academic format ideal for education and research positions',
+    preview: '/api/template-preview/harvard',
     style: 'classic'
   },
   {
-    id: 'minimal',
-    name: 'Minimal Clean',
-    description: 'Simple, ATS-friendly design that highlights your content',
-    preview: '/api/template-preview/minimal',
-    style: 'minimal'
-  },
-  {
     id: 'creative',
-    name: 'Creative Edge',
-    description: 'Bold design for creative professionals and designers',
+    name: 'Creative Modern',
+    description: 'Two-column design with sidebar for creative and marketing professionals',
     preview: '/api/template-preview/creative',
     style: 'creative'
   }

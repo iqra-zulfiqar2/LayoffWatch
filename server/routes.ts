@@ -1396,191 +1396,232 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
   `;
 
   switch (templateId) {
-    case 'modern':
+    case 'professional':
       return `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="UTF-8">
-          ${baseStyles}
           <style>
-            body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-            .container { background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-            h1 { color: #667eea; }
-            h2 { color: #667eea; border-bottom-color: #667eea; }
-            .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; margin: -20px -20px 30px -20px; padding: 30px 20px; border-radius: 10px 10px 0 0; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Arial', sans-serif; line-height: 1.4; color: #333; background: white; }
+            .container { max-width: 800px; margin: 0 auto; padding: 40px; }
+            .header { margin-bottom: 30px; }
+            .header h1 { font-size: 2.5rem; font-weight: bold; color: #333; margin-bottom: 8px; }
+            .contact-info { display: flex; gap: 20px; color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+            .contact-info span { display: flex; align-items: center; gap: 5px; }
+            .divider { height: 2px; background: #3B82F6; margin: 20px 0; }
+            .section { margin-bottom: 30px; }
+            .section h2 { color: #3B82F6; font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; }
+            .experience-item { margin-bottom: 20px; }
+            .experience-item h3 { font-size: 1.1rem; font-weight: bold; color: #333; margin-bottom: 5px; }
+            .experience-item .company { color: #666; font-size: 0.95rem; margin-bottom: 8px; }
+            .experience-item .duration { color: #666; font-size: 0.9rem; float: right; margin-top: -25px; }
+            .experience-item ul { margin-left: 20px; margin-top: 8px; }
+            .experience-item li { margin-bottom: 5px; font-size: 0.95rem; }
+            .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .skill-item { display: flex; justify-content: space-between; padding: 5px 0; }
+            .skill-name { font-weight: 500; }
+            .skill-level { color: #666; font-size: 0.9rem; }
+            .education-item h3 { font-weight: bold; margin-bottom: 5px; }
+            .education-item .school { color: #666; margin-bottom: 5px; }
+            .education-item .details { color: #666; font-size: 0.9rem; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>${resumeData.name || 'Your Name'}</h1>
+              <h1>${resumeData.name || 'John Doe'}</h1>
               <div class="contact-info">
-                <p>${resumeData.email || ''} | ${resumeData.phone || ''} | ${resumeData.location || ''}</p>
+                <span>📧 ${resumeData.email || 'john.doe@email.com'}</span>
+                <span>📞 ${resumeData.phone || '+1 (555) 123-4567'}</span>
+                <span>📍 ${resumeData.location || 'New York, NY'}</span>
+                <span>🔗 LinkedIn</span>
               </div>
+              <div class="divider"></div>
             </div>
 
             <div class="section">
               <h2>Professional Summary</h2>
-              <p>${resumeData.profession || 'Professional'} with ${resumeData.experience || 'several years'} of experience in the industry.</p>
+              <p>Experienced ${resumeData.profession || 'software engineer'} with ${resumeData.experience || '5+ years'} in full-stack development, specializing in React, Node.js, and cloud technologies. Proven track record of leading cross-functional teams and delivering scalable solutions that increased user engagement by 40% and reduced load times by 25%.</p>
             </div>
 
             <div class="section">
-              <h2>Experience</h2>
+              <h2>Work Experience</h2>
               <div class="experience-item">
-                <h3>${resumeData.profession || 'Your Position'} at ${resumeData.currentCompany || 'Company Name'}</h3>
-                <p><strong>Duration:</strong> ${resumeData.experience || 'Years of experience'}</p>
-                <p>Experienced professional with proven track record in ${resumeData.profession?.toLowerCase() || 'the field'}.</p>
+                <h3>Senior ${resumeData.profession || 'Software Engineer'}</h3>
+                <div class="company">${resumeData.currentCompany || 'Tech Corp'} | ${resumeData.location || 'New York, NY'}</div>
+                <div class="duration">2020-01 - Present</div>
+                <ul>
+                  <li>Led development of microservices architecture serving 100K+ daily active users</li>
+                  <li>Implemented CI/CD pipelines reducing deployment time by 60%</li>
+                  <li>Mentored 3 junior developers and conducted code reviews</li>
+                  <li>Collaborated with product team to define technical requirements</li>
+                </ul>
               </div>
-            </div>
-
-            <div class="section">
-              <h2>Skills</h2>
-              <div class="skills-list">
-                ${(resumeData.skills || 'JavaScript, React, Node.js').split(',').map((skill: string) => 
-                  `<span class="skill-tag">${skill.trim()}</span>`
-                ).join('')}
+              <div class="experience-item">
+                <h3>Full Stack Developer</h3>
+                <div class="company">StartupXYZ | ${resumeData.location || 'New York, NY'}</div>
+                <div class="duration">2018-06 - 2019-12</div>
+                <ul>
+                  <li>Built responsive web applications using React and Node.js</li>
+                  <li>Optimized database queries improving performance by 35%</li>
+                  <li>Integrated third-party APIs and payment processing systems</li>
+                </ul>
               </div>
             </div>
 
             <div class="section">
               <h2>Education</h2>
               <div class="education-item">
-                <h3>${resumeData.degree || 'Degree'}</h3>
-                <p>${resumeData.university || 'University Name'}</p>
+                <h3>${resumeData.degree || 'Bachelor of Science in Computer Science'}</h3>
+                <div class="school">${resumeData.university || 'New York University'}</div>
+                <div class="details">2014-09 - 2018-05<br>GPA: 3.8</div>
               </div>
             </div>
 
-            ${resumeData.certifications ? `
             <div class="section">
-              <h2>Certifications</h2>
-              <p>${resumeData.certifications}</p>
+              <h2>Skills</h2>
+              <div class="skills-grid">
+                ${(resumeData.skills || 'JavaScript, React, Node.js, Python, AWS, Git').split(',').slice(0, 6).map((skill: string) => 
+                  `<div class="skill-item"><span class="skill-name">${skill.trim()}</span><span class="skill-level">(Expert)</span></div>`
+                ).join('')}
+              </div>
             </div>
-            ` : ''}
           </div>
         </body>
         </html>
       `;
 
-    case 'classic':
+    case 'harvard':
       return `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="UTF-8">
-          ${baseStyles}
           <style>
-            body { background: #f8f9fa; }
-            .container { background: white; border: 1px solid #ddd; }
-            h1 { color: #2c3e50; text-decoration: underline; }
-            h2 { color: #2c3e50; border-bottom-color: #2c3e50; }
-            .header { border-bottom: 3px solid #2c3e50; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Times New Roman', serif; line-height: 1.5; color: #000; background: white; }
+            .container { max-width: 800px; margin: 0 auto; padding: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .header h1 { font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; }
+            .contact-info { font-size: 0.95rem; margin-bottom: 20px; }
+            .divider { height: 1px; background: #000; margin: 20px 0; }
+            .section { margin-bottom: 25px; }
+            .section h2 { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-decoration: underline; }
+            .summary p { text-align: justify; margin-bottom: 10px; }
+            .experience-item { margin-bottom: 20px; }
+            .experience-item .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+            .experience-item h3 { font-weight: bold; font-size: 1rem; }
+            .experience-item .duration { font-style: italic; }
+            .experience-item .company { font-style: italic; margin-bottom: 8px; }
+            .experience-item ul { margin-left: 20px; margin-top: 5px; }
+            .experience-item li { margin-bottom: 3px; }
+            .education-item .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+            .education-item h3 { font-weight: bold; font-size: 1rem; }
+            .education-item .duration { font-style: italic; }
+            .education-item .school { font-style: italic; margin-bottom: 5px; }
+            .skills-section ul { columns: 3; column-gap: 20px; margin-left: 20px; }
+            .skills-section li { margin-bottom: 5px; break-inside: avoid; }
+            .projects-item { margin-bottom: 15px; }
+            .projects-item h4 { font-weight: bold; margin-bottom: 5px; }
+            .projects-item .project-date { font-style: italic; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>${resumeData.name || 'Your Name'}</h1>
+              <h1>${resumeData.name || 'Alex Rivera'}</h1>
               <div class="contact-info">
-                <p>${resumeData.email || ''} • ${resumeData.phone || ''} • ${resumeData.location || ''}</p>
+                ${resumeData.phone || '123-456-7890'} • ${resumeData.email || 'alex.rivera@example.com'} • linkedin.com/in/alexriv • ${resumeData.location || 'Charleston, SC'}
               </div>
             </div>
 
-            <div class="section">
-              <h2>OBJECTIVE</h2>
-              <p>Experienced ${resumeData.profession || 'Professional'} seeking to leverage ${resumeData.experience || 'extensive experience'} in a challenging new role.</p>
-            </div>
-
-            <div class="section">
-              <h2>PROFESSIONAL EXPERIENCE</h2>
-              <div class="experience-item">
-                <h3>${resumeData.profession || 'Your Position'}</h3>
-                <p><strong>${resumeData.currentCompany || 'Company Name'}</strong> | ${resumeData.experience || 'Years of experience'}</p>
-                <p>• Demonstrated expertise in ${resumeData.profession?.toLowerCase() || 'professional field'}</p>
-                <p>• Proven track record of successful project delivery and team collaboration</p>
-              </div>
-            </div>
-
-            <div class="section">
-              <h2>TECHNICAL SKILLS</h2>
-              <p>${resumeData.skills || 'JavaScript, React, Node.js, Python, SQL'}</p>
-            </div>
-
-            <div class="section">
-              <h2>EDUCATION</h2>
-              <div class="education-item">
-                <h3>${resumeData.degree || 'Degree'}</h3>
-                <p>${resumeData.university || 'University Name'}</p>
-              </div>
-            </div>
-
-            ${resumeData.certifications ? `
-            <div class="section">
-              <h2>CERTIFICATIONS</h2>
-              <p>${resumeData.certifications}</p>
-            </div>
-            ` : ''}
-          </div>
-        </body>
-        </html>
-      `;
-
-    case 'minimal':
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          ${baseStyles}
-          <style>
-            body { background: white; }
-            h1 { font-weight: 300; font-size: 2.2em; }
-            h2 { font-weight: 400; color: #555; border-bottom: 1px solid #eee; }
-            .skill-tag { background: white; border: 1px solid #ddd; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>${resumeData.name || 'Your Name'}</h1>
-              <div class="contact-info">
-                <p>${resumeData.email || ''} | ${resumeData.phone || ''} | ${resumeData.location || ''}</p>
-              </div>
-            </div>
-
-            <div class="section">
+            <div class="section summary">
               <h2>Summary</h2>
-              <p>${resumeData.profession || 'Professional'} with ${resumeData.experience || 'several years'} of experience.</p>
+              <p>Passionate about entering the tech industry with a focus on ${resumeData.profession?.toLowerCase() || 'game development and coding'}. With a history of engaging roles, including creative experiences in Unity and ${resumeData.skills?.split(',')[0] || 'JavaScript'} development, seeking an IT internship in ${resumeData.location || 'Charleston, SC'} for Summer where I can apply my coding skills in C#, ${resumeData.skills || 'JavaScript, and web development'}, while further enhancing my practical experience in a dynamic tech environment.</p>
             </div>
 
             <div class="section">
-              <h2>Experience</h2>
+              <h2>Professional Experience</h2>
               <div class="experience-item">
-                <h3>${resumeData.profession || 'Your Position'}</h3>
-                <p>${resumeData.currentCompany || 'Company Name'} • ${resumeData.experience || 'Duration'}</p>
+                <div class="title-row">
+                  <h3>Donor Experience Officer</h3>
+                  <span class="duration">Aug 2023 - Apr 2024</span>
+                </div>
+                <div class="company">College of Charleston</div>
+                <ul>
+                  <li>Developed and implemented personalized outreach strategies to enhance donor engagement and stewardship, fostering relationships with alumni and philanthropic supporters.</li>
+                  <li>Led the development and execution of donor recognition events and communications, ensuring impactful stewardship and increasing fundraising loyalty.</li>
+                  <li>Utilized CRM and data analytics to track donor interactions, preferences, and giving history, informing targeted outreach and increasing fundraising outcomes.</li>
+                </ul>
               </div>
-            </div>
+              
+              <div class="experience-item">
+                <div class="title-row">
+                  <h3>Internship</h3>
+                  <span class="duration">Jun 2023 - Aug 2023</span>
+                </div>
+                <div class="company">NextGen Solutions</div>
+                <ul>
+                  <li>Assisted in the development and implementation of cutting-edge software solutions, contributing to the innovation of products and services.</li>
+                  <li>Conducted in-depth research and analysis to support project initiatives, providing valuable insights that informed decision-making processes.</li>
+                  <li>Collaborated with cross-functional teams to streamline workflows and enhance project outcomes, demonstrating strong teamwork and communication skills.</li>
+                </ul>
+              </div>
 
-            <div class="section">
-              <h2>Skills</h2>
-              <div class="skills-list">
-                ${(resumeData.skills || 'JavaScript, React, Node.js').split(',').map((skill: string) => 
-                  `<span class="skill-tag">${skill.trim()}</span>`
-                ).join('')}
+              <div class="experience-item">
+                <div class="title-row">
+                  <h3>Team Lead</h3>
+                  <span class="duration">Jan 2019 - Dec 2021</span>
+                </div>
+                <div class="company">Chick-Fil-A</div>
+                <ul>
+                  <li>Led and motivated a team of 15 employees to ensure efficient operations and exceptional customer service, achieving a 20% increase in customer satisfaction scores.</li>
+                  <li>Implemented new inventory management strategies that reduced costs by 30%, significantly decreasing operational costs.</li>
+                  <li>Trained new team members on company policies, food safety standards, and customer service excellence, fostering a supportive and compliant work environment.</li>
+                </ul>
               </div>
             </div>
 
             <div class="section">
               <h2>Education</h2>
-              <p>${resumeData.degree || 'Degree'} • ${resumeData.university || 'University'}</p>
+              <div class="education-item">
+                <div class="title-row">
+                  <h3>College of Charleston</h3>
+                  <span class="duration">May 2024</span>
+                </div>
+                <div class="school">${resumeData.degree || 'Bachelor of Science in Information Technology'}</div>
+                <ul>
+                  <li>Captain of Men's Club Basketball Team</li>
+                  <li>GPA: 3.5</li>
+                </ul>
+              </div>
             </div>
 
-            ${resumeData.certifications ? `
-            <div class="section">
-              <h2>Certifications</h2>
-              <p>${resumeData.certifications}</p>
+            <div class="section skills-section">
+              <h2>Skills</h2>
+              <ul>
+                ${(resumeData.skills || 'Game Design and Development, Unity Engine Expertise, C# Programming, WebAssembly, JavaScript Development, Full-Stack Web Development, Version Control with Git, Team Leadership, Donor Engagement').split(',').map((skill: string) => 
+                  `<li>${skill.trim()}</li>`
+                ).join('')}
+              </ul>
             </div>
-            ` : ''}
+
+            <div class="section">
+              <h2>Projects</h2>
+              <div class="projects-item">
+                <h4>Game Stack Website Development Project | <span class="project-date">May 2024</span></h4>
+                <p>Engineered a full-stack website, integrating front-end and back-end components, with the codebase shared on GitHub for collaboration.</p>
+              </div>
+              <div class="projects-item">
+                <h4>Online Card Game (Unity and Wasm) | <span class="project-date">Apr 2024</span></h4>
+                <p>Developed an online card game using Unity and WebAssembly (Wasm) rendering to create a high-performance game engine, enhancing user interaction and experience.</p>
+              </div>
+              <div class="projects-item">
+                <h4>Leveraged JavaScript to implement dynamic features and optimize game engine functionality, ensuring seamless performance across various browsers. Skills in C#, WebAssembly (Wasm) rendering, and JavaScript for game engine development.</h4>
+              </div>
+            </div>
           </div>
         </body>
         </html>
@@ -1592,68 +1633,187 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
         <html>
         <head>
           <meta charset="UTF-8">
-          ${baseStyles}
           <style>
-            body { background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4); }
-            .container { background: white; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-            h1 { color: #ff6b6b; font-weight: bold; }
-            h2 { color: #4ecdc4; border-bottom-color: #4ecdc4; }
-            .header { text-align: left; background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; margin: -20px -20px 30px -20px; padding: 30px; border-radius: 15px 15px 0 0; }
-            .skill-tag { background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; border: none; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Arial', sans-serif; line-height: 1.4; color: #333; background: white; }
+            .resume-container { display: flex; max-width: 850px; margin: 0 auto; min-height: 100vh; }
+            .sidebar { background: #2C3E50; color: white; padding: 40px 30px; width: 250px; }
+            .sidebar .profile-photo { width: 120px; height: 120px; border-radius: 50%; background: #34495e; margin: 0 auto 30px; overflow: hidden; }
+            .sidebar .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+            .sidebar h1 { font-size: 1.8rem; font-weight: bold; text-align: center; margin-bottom: 10px; }
+            .sidebar .title { font-size: 1rem; text-align: center; margin-bottom: 30px; color: #BDC3C7; }
+            .sidebar .section { margin-bottom: 30px; }
+            .sidebar .section h3 { font-size: 1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #34495e; padding-bottom: 8px; }
+            .sidebar .contact-item { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+            .sidebar .contact-item .icon { width: 16px; height: 16px; background: #3498db; border-radius: 50%; }
+            .sidebar .skill-item { margin-bottom: 8px; font-size: 0.9rem; }
+            .sidebar .language-item { margin-bottom: 8px; font-size: 0.9rem; display: flex; justify-content: space-between; }
+            .main-content { flex: 1; padding: 40px; background: white; }
+            .main-content .section { margin-bottom: 35px; }
+            .main-content .section h2 { font-size: 1.3rem; font-weight: bold; color: #2C3E50; margin-bottom: 20px; text-transform: uppercase; }
+            .main-content .profile-text { font-size: 0.95rem; line-height: 1.6; text-align: justify; }
+            .experience-item { margin-bottom: 25px; }
+            .experience-item .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+            .experience-item h3 { font-size: 1.1rem; font-weight: bold; color: #2C3E50; }
+            .experience-item .duration { color: #7F8C8D; font-size: 0.9rem; }
+            .experience-item .company { color: #3498db; font-weight: 500; margin-bottom: 8px; }
+            .experience-item ul { margin-left: 20px; margin-top: 5px; }
+            .experience-item li { margin-bottom: 5px; font-size: 0.95rem; }
+            .reference-item { margin-bottom: 20px; }
+            .reference-item h4 { font-weight: bold; margin-bottom: 5px; }
+            .reference-item .role { color: #7F8C8D; font-size: 0.9rem; margin-bottom: 5px; }
+            .reference-item .contact { font-size: 0.9rem; }
+            .reference-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="header">
-              <h1>${resumeData.name || 'Your Name'}</h1>
-              <div class="contact-info">
-                <p>${resumeData.email || ''} • ${resumeData.phone || ''} • ${resumeData.location || ''}</p>
+          <div class="resume-container">
+            <div class="sidebar">
+              <div class="profile-photo">
+                <!-- Profile photo placeholder -->
               </div>
-            </div>
+              <h1>${resumeData.name?.toUpperCase() || 'RICHARD SANCHEZ'}</h1>
+              <div class="title">${resumeData.profession?.toUpperCase() || 'MARKETING MANAGER'}</div>
 
-            <div class="section">
-              <h2>Creative Profile</h2>
-              <p>Innovative ${resumeData.profession || 'Creative Professional'} with ${resumeData.experience || 'extensive experience'} bringing fresh perspectives to every project.</p>
-            </div>
-
-            <div class="section">
-              <h2>Professional Journey</h2>
-              <div class="experience-item">
-                <h3>${resumeData.profession || 'Your Position'}</h3>
-                <p><strong>${resumeData.currentCompany || 'Creative Studio'}</strong></p>
-                <p>${resumeData.experience || 'Years of creative experience'}</p>
+              <div class="section">
+                <h3>CONTACT</h3>
+                <div class="contact-item">
+                  <div class="icon"></div>
+                  <span>${resumeData.phone || '+123-456-7890'}</span>
+                </div>
+                <div class="contact-item">
+                  <div class="icon"></div>
+                  <span>${resumeData.email || 'hello@reallygreatsite.com'}</span>
+                </div>
+                <div class="contact-item">
+                  <div class="icon"></div>
+                  <span>${resumeData.location || '123 Anywhere St., Any City'}</span>
+                </div>
+                <div class="contact-item">
+                  <div class="icon"></div>
+                  <span>www.reallygreatsite.com</span>
+                </div>
               </div>
-            </div>
 
-            <div class="section">
-              <h2>Creative Skills</h2>
-              <div class="skills-list">
-                ${(resumeData.skills || 'Design, Creativity, Innovation').split(',').map((skill: string) => 
-                  `<span class="skill-tag">${skill.trim()}</span>`
+              <div class="section">
+                <h3>EDUCATION</h3>
+                <div style="margin-bottom: 15px;">
+                  <div style="font-weight: bold; margin-bottom: 5px;">2029 - 2030</div>
+                  <div style="font-size: 0.9rem;">WARDIERE UNIVERSITY</div>
+                  <div style="font-size: 0.85rem; color: #BDC3C7;">${resumeData.degree || 'Master of Business Management'}</div>
+                  <div style="font-size: 0.85rem; color: #BDC3C7;">GPA: 3.8 / 4.0</div>
+                </div>
+                <div>
+                  <div style="font-weight: bold; margin-bottom: 5px;">2025 - 2029</div>
+                  <div style="font-size: 0.9rem;">WARDIERE UNIVERSITY</div>
+                  <div style="font-size: 0.85rem; color: #BDC3C7;">Bachelor of Business</div>
+                  <div style="font-size: 0.85rem; color: #BDC3C7;">GPA: 3.8 / 4.0</div>
+                </div>
+              </div>
+
+              <div class="section">
+                <h3>SKILLS</h3>
+                ${(resumeData.skills || 'Project Management, Public Relations, Teamwork, Time Management, Leadership, Effective Communication, Critical Thinking').split(',').map((skill: string) => 
+                  `<div class="skill-item">• ${skill.trim()}</div>`
                 ).join('')}
               </div>
-            </div>
 
-            <div class="section">
-              <h2>Education & Growth</h2>
-              <div class="education-item">
-                <h3>${resumeData.degree || 'Creative Degree'}</h3>
-                <p>${resumeData.university || 'Design Institute'}</p>
+              <div class="section">
+                <h3>LANGUAGES</h3>
+                <div class="language-item">
+                  <span>English</span>
+                  <span>(Fluent)</span>
+                </div>
+                <div class="language-item">
+                  <span>French</span>
+                  <span>(Fluent)</span>
+                </div>
+                <div class="language-item">
+                  <span>German</span>
+                  <span>(Basic)</span>
+                </div>
+                <div class="language-item">
+                  <span>Spanish</span>
+                  <span>(Intermediate)</span>
+                </div>
               </div>
             </div>
 
-            ${resumeData.certifications ? `
-            <div class="section">
-              <h2>Certifications & Awards</h2>
-              <p>${resumeData.certifications}</p>
+            <div class="main-content">
+              <div class="section">
+                <h2>Profile</h2>
+                <p class="profile-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
+              </div>
+
+              <div class="section">
+                <h2>Work Experience</h2>
+                <div class="experience-item">
+                  <div class="title-row">
+                    <h3>Borcelle Studio</h3>
+                    <span class="duration">2030 - PRESENT</span>
+                  </div>
+                  <div class="company">${resumeData.profession || 'Marketing Manager'} & Specialist</div>
+                  <ul>
+                    <li>Develop and execute comprehensive marketing strategies and campaigns that align with the company's goals and objectives.</li>
+                    <li>Lead, mentor, and manage a high-performing marketing team, fostering a collaborative and result-driven work environment.</li>
+                    <li>Monitor brand consistency across marketing channels and materials.</li>
+                  </ul>
+                </div>
+
+                <div class="experience-item">
+                  <div class="title-row">
+                    <h3>Fauget Studio</h3>
+                    <span class="duration">2025 - 2029</span>
+                  </div>
+                  <div class="company">${resumeData.profession || 'Marketing Manager'} & Specialist</div>
+                  <ul>
+                    <li>Create and manage the marketing budget, ensuring efficient allocation of resources and maximizing ROI.</li>
+                    <li>Oversee market research to identify emerging trends, customer needs, and competitive strategies.</li>
+                    <li>Monitor brand consistency across marketing channels and materials.</li>
+                  </ul>
+                </div>
+
+                <div class="experience-item">
+                  <div class="title-row">
+                    <h3>Studio Shodwe</h3>
+                    <span class="duration">2024 - 2025</span>
+                  </div>
+                  <div class="company">${resumeData.profession || 'Marketing Manager'} & Specialist</div>
+                  <ul>
+                    <li>Develop and maintain strong relationships with partners, agencies, and vendors to support marketing initiatives.</li>
+                    <li>Monitor and maintain brand consistency across all marketing channels and materials.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="section">
+                <h2>Reference</h2>
+                <div class="reference-grid">
+                  <div class="reference-item">
+                    <h4>Estelle Darcy</h4>
+                    <div class="role">Wardiere / CTO</div>
+                    <div class="contact">
+                      <div>Phone: 123-456-7890</div>
+                      <div>Email: hello@reallygreatsite.com</div>
+                    </div>
+                  </div>
+                  <div class="reference-item">
+                    <h4>Harper Richard</h4>
+                    <div class="role">Wardiere / CEO</div>
+                    <div class="contact">
+                      <div>Phone: 123-456-7890</div>
+                      <div>Email: hello@reallygreatsite.com</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            ` : ''}
           </div>
         </body>
         </html>
       `;
 
     default:
-      return generateResumeHTML('modern', resumeData);
+      return generateResumeHTML('professional', resumeData);
   }
 }
