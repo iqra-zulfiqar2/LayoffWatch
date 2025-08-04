@@ -991,10 +991,8 @@ Requirements:
         const profileSlug = urlParts[urlParts.indexOf('in') + 1] || 'professional';
         const profileName = profileSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         
-        console.log('Extracted profile name from URL:', profileName);
-        
         const fallbackProfileData = {
-          name: profileName && profileName !== 'Professional' && profileName !== 'Join Linkedin' ? profileName : 'Professional Profile',
+          name: profileName && profileName !== 'Professional' ? profileName : 'Professional Profile',
           headline: 'Senior Technology Leader | Innovation Expert | Team Builder',
           about: 'Results-driven professional with 8+ years of experience leading cross-functional teams and driving strategic initiatives. Proven track record of delivering innovative solutions, building high-performing teams, and achieving business objectives. Passionate about technology, leadership, and creating meaningful impact in fast-growing organizations.',
           location: 'San Francisco Bay Area',
@@ -1042,55 +1040,9 @@ Requirements:
         // Wait for profile content to load
         await page.waitForSelector('h1', { timeout: 10000 });
 
-        // Extract profile data with enhanced name detection
+        // Extract profile data
         const profileData = await page.evaluate(() => {
-          // Enhanced profile name extraction with multiple selectors
-          const nameSelectors = [
-            'h1.text-heading-xlarge',
-            'h1.top-card-layout__title',
-            'h1[data-generated-suggestion-target]',
-            '.pv-text-details__left-panel h1',
-            '.ph5.pb5 h1',
-            'h1.break-words',
-            'h1',
-            '.text-heading-xlarge',
-            '[data-field="name"] h1',
-            '.top-card-layout__entity-info h1'
-          ];
-          
-          let name = '';
-          for (const selector of nameSelectors) {
-            const element = document.querySelector(selector);
-            if (element && element.textContent && element.textContent.trim() !== 'Join LinkedIn') {
-              name = element.textContent.trim();
-              console.log('Found name with selector:', selector, '- Name:', name);
-              break;
-            }
-          }
-          
-          // If still no name found, try to extract from page title
-          if (!name || name === 'Join LinkedIn') {
-            const title = document.title;
-            if (title && title.includes(' | LinkedIn')) {
-              name = title.replace(' | LinkedIn', '').trim();
-              console.log('Extracted name from title:', name);
-            }
-          }
-          
-          // Final fallback - extract from meta description
-          if (!name || name === 'Join LinkedIn') {
-            const metaDesc = document.querySelector('meta[name="description"]');
-            if (metaDesc && metaDesc.content) {
-              const content = metaDesc.content;
-              // Look for "View [Name]'s profile" pattern
-              const match = content.match(/View (.+?)'s profile/);
-              if (match) {
-                name = match[1].trim();
-                console.log('Extracted name from meta description:', name);
-              }
-            }
-          }
-          
+          const name = document.querySelector('h1')?.textContent?.trim() || '';
           const headline = document.querySelector('.text-body-medium')?.textContent?.trim() || '';
           const location = document.querySelector('.text-body-small.inline.t-black--light.break-words')?.textContent?.trim() || '';
           
@@ -1134,10 +1086,8 @@ Requirements:
             }
           });
 
-          console.log('Final extracted name:', name);
-          
           return {
-            name: name || 'Professional Profile',
+            name,
             headline,
             about,
             location,
