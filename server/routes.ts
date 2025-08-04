@@ -654,8 +654,10 @@ Requirements:
     const lines = resumeText.split('\n').filter(line => line.trim().length > 0);
     let extractedName = "";
     
+    console.log("Lines for name extraction:", lines.slice(0, 6)); // Debug log
+    
     // Try multiple patterns for name extraction
-    for (const line of lines.slice(0, 6)) { // Check first 6 lines
+    for (const line of lines.slice(0, 8)) { // Check first 8 lines to be thorough
       const cleanLine = line.trim();
       
       // Skip lines with email, phone, or obvious non-name content
@@ -663,15 +665,17 @@ Requirements:
           cleanLine.match(/\d{3}/) || 
           cleanLine.toLowerCase().includes('resume') ||
           cleanLine.toLowerCase().includes('cv') ||
+          cleanLine.toLowerCase().includes('curriculum') ||
           cleanLine.length < 3 ||
           cleanLine.length > 50) {
         continue;
       }
       
-      // Look for name patterns
-      const nameMatch = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
-      if (nameMatch && nameMatch[1].split(' ').length >= 2) {
-        extractedName = nameMatch[1].trim();
+      // Primary pattern: Standard capitalized names (First Last, First Middle Last)
+      const standardNameMatch = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
+      if (standardNameMatch && standardNameMatch[1].split(' ').length >= 2 && standardNameMatch[1].split(' ').length <= 4) {
+        extractedName = standardNameMatch[1].trim();
+        console.log("Found name with standard pattern:", extractedName);
         break;
       }
       
@@ -679,18 +683,36 @@ Requirements:
       const labelMatch = cleanLine.match(/^Name:\s*(.+)$/i);
       if (labelMatch && labelMatch[1]) {
         extractedName = labelMatch[1].trim();
+        console.log("Found name with label pattern:", extractedName);
         break;
       }
       
-      // If nothing else works, use first line that looks like a name
+      // More flexible pattern for names that might have different cases or special characters
+      const flexibleNameMatch = cleanLine.match(/^([A-Za-z]+(?:\s+[A-Za-z]+){1,3})$/);
+      if (flexibleNameMatch && !extractedName && flexibleNameMatch[1].split(' ').length >= 2) {
+        const words = flexibleNameMatch[1].split(' ');
+        // Ensure it looks like a name (not all lowercase, not all uppercase)
+        if (words.every(word => word.length > 1) && 
+            !words.every(word => word === word.toLowerCase()) &&
+            !words.every(word => word === word.toUpperCase())) {
+          extractedName = flexibleNameMatch[1].trim();
+          console.log("Found name with flexible pattern:", extractedName);
+          break;
+        }
+      }
+      
+      // Last resort: Use any line that looks like a name (proper case with 2-4 words)
       if (!extractedName && cleanLine.split(' ').length >= 2 && cleanLine.split(' ').length <= 4) {
         const words = cleanLine.split(' ');
-        if (words.every(word => word[0] && word[0].toUpperCase() === word[0])) {
+        if (words.every(word => word[0] && word[0].toUpperCase() === word[0] && word.length > 1)) {
           extractedName = cleanLine;
+          console.log("Found name with fallback pattern:", extractedName);
           break;
         }
       }
     }
+    
+    console.log("Final extracted name:", extractedName);
     data.name = extractedName || "Your Name";
     
     // Extract education
@@ -794,6 +816,7 @@ Requirements:
           try {
             const result = await mammoth.extractRawText({ buffer: dataBuffer });
             resumeText = result.value;
+            console.log("DOCX extracted text:", resumeText.substring(0, 200)); // Debug log
           } catch (docxError) {
             console.error("Error parsing DOCX:", docxError);
             resumeText = "Error parsing DOCX file. Please try with a different format.";
