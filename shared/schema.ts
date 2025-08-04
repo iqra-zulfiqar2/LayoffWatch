@@ -266,3 +266,41 @@ export type InsertCompanyActivity = z.infer<typeof insertCompanyActivitySchema>;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 export type UserCompanySubscription = typeof userCompanySubscriptions.$inferSelect;
 export type InsertUserCompanySubscription = typeof userCompanySubscriptions.$inferInsert;
+
+// Resume parsing interface
+export interface ParsedResumeData {
+  name: string;
+  email: string;
+  phone: string;
+  profession: string;
+  summary: string;
+  experience: Array<{
+    title: string;
+    company: string;
+    duration: string;
+    responsibilities: string[];
+  }>;
+  skills: string[];
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: string;
+    gpa?: string;
+  }>;
+  certifications: Array<{
+    name: string;
+    issuer: string;
+    year: string;
+  }>;
+  achievements: string[];
+  projects: Array<{
+    name: string;
+    description: string;
+    technologies: string[];
+  }>;
+  languages: string[];
+  location: string;
+  linkedin: string;
+  github: string;
+  website: string;
+}

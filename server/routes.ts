@@ -7,7 +7,7 @@ import { setupMagicAuth, isMagicAuthenticated } from "./magicAuth";
 // import { setupLinkedInAuth } from "./linkedinAuth";
 import { analyzeJobSecurityRisk } from "./anthropic";
 import { dataIntegrator } from "./data-integrator";
-import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
+import { insertCompanySchema, updateUserProfileSchema, ParsedResumeData } from "@shared/schema";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -639,6 +639,209 @@ Requirements:
   });
 
   // Resume parsing helper function
+  // Comprehensive resume parsing function
+  function parseResumeComprehensively(resumeText: string): ParsedResumeData {
+    const data: ParsedResumeData = {
+      name: '',
+      email: '',
+      phone: '',
+      profession: '',
+      summary: '',
+      experience: [],
+      skills: [],
+      education: [],
+      certifications: [],
+      achievements: [],
+      projects: [],
+      languages: [],
+      location: '',
+      linkedin: '',
+      github: '',
+      website: ''
+    };
+
+    const lines = resumeText.split('\n').filter(line => line.trim());
+    const text = resumeText.toLowerCase();
+
+    // Extract name (using existing logic but enhanced)
+    let extractedName = '';
+    for (let i = 0; i < Math.min(8, lines.length); i++) {
+      const line = lines[i].trim();
+      const cleanLine = line.replace(/[^\w\s]/g, '').trim();
+      
+      if (cleanLine.length < 2 || cleanLine.length > 50) continue;
+      
+      // Skip lines that look like headers, emails, or common resume elements
+      if (/^(resume|cv|curriculum|contact|objective|summary|education|experience|skills|projects|achievements|certifications)/i.test(cleanLine) ||
+          /@/.test(line) ||
+          /\d{3}/.test(line) ||
+          /^\d+/.test(cleanLine)) {
+        continue;
+      }
+      
+      // Look for properly formatted names
+      const nameMatch = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
+      if (nameMatch && nameMatch[1].split(' ').length >= 2 && nameMatch[1].split(' ').length <= 4) {
+        extractedName = nameMatch[1].trim();
+        break;
+      }
+    }
+    data.name = extractedName || "Your Name";
+
+    // Extract contact information
+    data.email = resumeText.match(/[\w\.-]+@[\w\.-]+\.\w+/)?.[0] || '';
+    data.phone = resumeText.match(/[\+]?[\d\s\-\(\)]{10,}/)?.[0]?.replace(/\s+/g, ' ').trim() || '';
+    
+    // Extract LinkedIn
+    const linkedinMatch = resumeText.match(/(?:linkedin\.com\/in\/|linkedin\/in\/)([^\s\n,]+)/i);
+    data.linkedin = linkedinMatch ? `https://linkedin.com/in/${linkedinMatch[1]}` : '';
+    
+    // Extract GitHub
+    const githubMatch = resumeText.match(/(?:github\.com\/)([^\s\n,]+)/i);
+    data.github = githubMatch ? `https://github.com/${githubMatch[1]}` : '';
+    
+    // Extract website
+    const websiteMatch = resumeText.match(/https?:\/\/[^\s\n]+/g);
+    if (websiteMatch) {
+      data.website = websiteMatch.find(url => !url.includes('linkedin') && !url.includes('github')) || '';
+    }
+
+    // Extract location
+    const locationPatterns = [
+      /(?:location|address|city)[\s\w]*:?\s*([^,\n]+)/i,
+      /([A-Z][a-z]+,\s*[A-Z]{2})/,
+      /([A-Z][a-z]+\s*,\s*[A-Z][a-z]+)/
+    ];
+    for (const pattern of locationPatterns) {
+      const match = resumeText.match(pattern);
+      if (match) {
+        data.location = match[1].trim();
+        break;
+      }
+    }
+
+    // Extract profession/title
+    const professionKeywords = ['engineer', 'developer', 'analyst', 'manager', 'consultant', 'designer', 'architect', 'specialist', 'director', 'lead'];
+    const professionPattern = new RegExp(`((?:senior\\s+|junior\\s+|lead\\s+)?(?:${professionKeywords.join('|')})(?:\\s+\\w+)*)`, 'i');
+    const professionMatch = resumeText.match(professionPattern);
+    data.profession = professionMatch ? professionMatch[1] : '';
+
+    // Extract summary/objective
+    const summaryPatterns = [
+      /(?:summary|objective|profile|about)[\s\w]*:?\s*([^.\n]+(?:\.[^.\n]+)*)/i,
+      /(?:professional\s+summary)[\s\w]*:?\s*([^.\n]+(?:\.[^.\n]+)*)/i
+    ];
+    for (const pattern of summaryPatterns) {
+      const match = resumeText.match(pattern);
+      if (match) {
+        data.summary = match[1].trim().replace(/\s+/g, ' ');
+        break;
+      }
+    }
+
+    // Extract skills
+    const skillsPattern = /(?:skills|technologies|tools|programming)[\s\w]*:?\s*([^.\n]+)/i;
+    const skillsMatch = resumeText.match(skillsPattern);
+    if (skillsMatch) {
+      data.skills = skillsMatch[1].split(/[,;|]/).map(skill => skill.trim()).filter(skill => skill.length > 0);
+    }
+
+    // Extract experience
+    const experienceLines = lines.filter(line => 
+      /\d{4}/.test(line) && 
+      (/present|current|now|\d{4}\s*-\s*\d{4}|\d{4}\s*-\s*present/i.test(line))
+    );
+    
+    experienceLines.forEach(line => {
+      const titleMatch = line.match(/^([^,\n]+?)(?:\s*[-–]\s*|\s*,\s*)([^,\n]+?)(?:\s*[-–]\s*|\s*,\s*)/);
+      if (titleMatch) {
+        const durationMatch = line.match(/(\d{4}\s*[-–]\s*(?:\d{4}|present|current))/i);
+        data.experience.push({
+          title: titleMatch[1].trim(),
+          company: titleMatch[2].trim(),
+          duration: durationMatch ? durationMatch[1] : '',
+          responsibilities: []
+        });
+      }
+    });
+
+    // Extract education
+    const educationKeywords = ['bachelor', 'master', 'phd', 'degree', 'university', 'college', 'institute'];
+    const educationLines = lines.filter(line => 
+      educationKeywords.some(keyword => line.toLowerCase().includes(keyword))
+    );
+    
+    educationLines.forEach(line => {
+      const degreeMatch = line.match(/(bachelor[^,]*|master[^,]*|phd[^,]*|b\.?[a-z]\.|m\.?[a-z]\.|ph\.?d\.?)[^,]*/i);
+      const institutionMatch = line.match(/(?:university|college|institute)\s+[^,\n]*/i);
+      const yearMatch = line.match(/\d{4}/);
+      
+      if (degreeMatch || institutionMatch) {
+        data.education.push({
+          degree: degreeMatch ? degreeMatch[0].trim() : '',
+          institution: institutionMatch ? institutionMatch[0].trim() : '',
+          year: yearMatch ? yearMatch[0] : ''
+        });
+      }
+    });
+
+    // Extract certifications
+    const certificationLines = lines.filter(line => 
+      /(?:certification|certified|certificate)/i.test(line)
+    );
+    
+    certificationLines.forEach(line => {
+      const certMatch = line.match(/([^,\n]+)(?:certified|certification|certificate)/i);
+      if (certMatch) {
+        data.certifications.push({
+          name: certMatch[1].trim(),
+          issuer: '',
+          year: line.match(/\d{4}/)?.[0] || ''
+        });
+      }
+    });
+
+    // Extract achievements
+    const achievementKeywords = ['achievement', 'award', 'recognition', 'honor', 'accomplishment'];
+    const achievementLines = lines.filter(line => 
+      achievementKeywords.some(keyword => line.toLowerCase().includes(keyword))
+    );
+    data.achievements = achievementLines.map(line => line.trim());
+
+    // Extract projects
+    const projectLines = lines.filter(line => 
+      /project/i.test(line) && !line.toLowerCase().includes('project manager')
+    );
+    
+    projectLines.forEach(line => {
+      const projectMatch = line.match(/([^,\n]+project[^,\n]*)/i);
+      if (projectMatch) {
+        data.projects.push({
+          name: projectMatch[1].trim(),
+          description: '',
+          technologies: []
+        });
+      }
+    });
+
+    // Extract languages
+    const languageKeywords = ['languages', 'language', 'fluent', 'native', 'bilingual'];
+    const languageLines = lines.filter(line => 
+      languageKeywords.some(keyword => line.toLowerCase().includes(keyword))
+    );
+    
+    languageLines.forEach(line => {
+      const commonLanguages = ['english', 'spanish', 'french', 'german', 'chinese', 'japanese', 'korean', 'arabic', 'hindi', 'urdu', 'punjabi'];
+      commonLanguages.forEach(lang => {
+        if (line.toLowerCase().includes(lang)) {
+          data.languages.push(lang.charAt(0).toUpperCase() + lang.slice(1));
+        }
+      });
+    });
+
+    return data;
+  }
+
   function parseResumeText(resumeText: string) {
     const data: any = {};
     
@@ -809,19 +1012,47 @@ Requirements:
           // Parse TXT files
           resumeText = fs.readFileSync(filePath, 'utf8');
         } else if (req.file.mimetype === 'application/pdf') {
-          // Basic PDF support - suggest manual conversion for better results
+          // Enhanced PDF text extraction with basic approach
+          console.log("Processing PDF file...");
           try {
-            // Try basic text extraction by converting to string and looking for readable text
+            // Try converting buffer to text and extracting readable content
             const pdfString = dataBuffer.toString('utf8');
-            // Look for common text patterns in PDF
-            const textMatch = pdfString.match(/[A-Za-z\s@\.\-\+\(\)]{20,}/g);
-            if (textMatch && textMatch.length > 0) {
-              resumeText = textMatch.join(' ').replace(/\s+/g, ' ').trim();
-            } else {
-              resumeText = "Unable to extract text from this PDF. For best results, please save your PDF as a .txt file (File → Save As → Text) or upload a .docx version.";
+            
+            // Extract text patterns that are typically readable
+            const textPatterns = [
+              // Look for common text between stream markers
+              /stream\s*([\s\S]*?)\s*endstream/gi,
+              // Look for readable text sequences  
+              /[A-Za-z]{3,}[\s\S]*?[A-Za-z]{3,}/g,
+              // Look for email patterns
+              /[\w\.-]+@[\w\.-]+\.\w+/g,
+              // Look for phone patterns
+              /[\+\-\(\)\d\s]{10,}/g
+            ];
+            
+            let extractedText = '';
+            textPatterns.forEach(pattern => {
+              const matches = pdfString.match(pattern);
+              if (matches) {
+                extractedText += matches.join(' ') + ' ';
+              }
+            });
+            
+            // Clean up the extracted text
+            resumeText = extractedText
+              .replace(/[^\w\s@\.\-\+\(\),]/g, ' ') // Remove special chars except basic ones
+              .replace(/\s+/g, ' ') // Normalize whitespace
+              .trim();
+              
+            console.log("PDF extracted text length:", resumeText.length);
+            console.log("PDF extracted text sample:", resumeText.substring(0, 300));
+            
+            if (!resumeText || resumeText.trim().length < 50) {
+              resumeText = "PDF text extraction yielded limited results. This PDF might be image-based or use complex formatting. For best results, please save your PDF as a .txt file (File → Save As → Plain Text) or upload a .docx version for comprehensive parsing.";
             }
           } catch (error) {
-            resumeText = "PDF processing failed. Please convert your PDF to .txt format (File → Save As → Plain Text) and upload again.";
+            console.error("PDF parsing error:", error);
+            resumeText = "PDF processing encountered an issue. Please try uploading a .docx or .txt version for optimal text extraction.";
           }
         } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
           // Parse DOCX files
@@ -853,8 +1084,8 @@ Requirements:
       // Clean up uploaded file
       fs.unlinkSync(filePath);
 
-      // Parse the resume text
-      const parsedData = parseResumeText(resumeText);
+      // Parse the resume text comprehensively
+      const parsedData = parseResumeComprehensively(resumeText);
 
       res.json({ 
         resumeText, 
@@ -1439,14 +1670,15 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
                 <span>📧 ${resumeData.email || 'john.doe@email.com'}</span>
                 <span>📞 ${resumeData.phone || '+1 (555) 123-4567'}</span>
                 <span>📍 ${resumeData.location || 'New York, NY'}</span>
-                <span>🔗 LinkedIn</span>
+                ${resumeData.linkedin ? `<span>🔗 <a href="${resumeData.linkedin}">LinkedIn</a></span>` : '<span>🔗 LinkedIn</span>'}
+                ${resumeData.github ? `<span>💻 <a href="${resumeData.github}">GitHub</a></span>` : ''}
               </div>
               <div class="divider"></div>
             </div>
 
             <div class="section">
               <h2>Professional Summary</h2>
-              <p>Experienced ${resumeData.profession || 'software engineer'} with ${resumeData.experience || '5+ years'} in full-stack development, specializing in React, Node.js, and cloud technologies. Proven track record of leading cross-functional teams and delivering scalable solutions that increased user engagement by 40% and reduced load times by 25%.</p>
+              <p>${resumeData.summary || `Experienced ${resumeData.profession || 'software engineer'} with proven expertise in modern technologies and strong problem-solving abilities. Demonstrated track record of delivering high-quality solutions and collaborating effectively with cross-functional teams.`}</p>
             </div>
 
             <div class="section">

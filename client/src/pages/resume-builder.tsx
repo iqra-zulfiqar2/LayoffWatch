@@ -9,18 +9,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
-interface ParsedResumeData {
-  name: string;
-  email: string;
-  phone: string;
-  profession: string;
-  experience: string;
-  skills: string;
-  education: string;
-  certifications: string;
-  location: string;
-  currentCompany: string;
-}
+import { ParsedResumeData } from '@shared/schema';
 
 interface ResumeTemplate {
   id: string;
@@ -325,7 +314,13 @@ export default function ResumeBuilder() {
               <span className="font-medium">Profession:</span> {extractedData.profession}
             </div>
             <div>
-              <span className="font-medium">Experience:</span> {extractedData.experience}
+              <span className="font-medium">Skills:</span> {Array.isArray(extractedData.skills) ? extractedData.skills.slice(0, 3).join(', ') : extractedData.skills}
+            </div>
+            <div>
+              <span className="font-medium">Education:</span> {Array.isArray(extractedData.education) ? extractedData.education[0]?.degree : extractedData.education}
+            </div>
+            <div>
+              <span className="font-medium">Location:</span> {extractedData.location}
             </div>
           </div>
         </div>
