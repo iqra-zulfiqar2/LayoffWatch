@@ -99,28 +99,42 @@ export default function ResumeBuilder() {
 
   const generateResumeMutation = useMutation({
     mutationFn: async (data: { templateId: string; resumeData: ParsedResumeData }) => {
-      const response = await apiRequest('POST', '/api/generate-resume-pdf', data);
-      return response.blob();
+      const response = await fetch('/api/generate-resume-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate resume');
+      }
+      
+      return response.text();
     },
-    onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${extractedData?.name || 'resume'}_${selectedTemplate}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+    onSuccess: (htmlContent) => {
+      // Open HTML in new window for printing to PDF
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        
+        // Auto-trigger print dialog after a brief delay
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      }
       
       toast({
-        title: "Resume Generated",
-        description: "Your professional resume has been downloaded successfully!",
+        title: "Resume Generated Successfully",
+        description: "A new window opened with your resume. Use Ctrl+P (or Cmd+P) to save as PDF.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Resume generation error:", error);
       toast({
-        title: "Generation Failed", 
-        description: "Failed to generate resume PDF. Please try again.",
+        title: "Generation Failed",
+        description: "Failed to generate your resume. Please try again.",
         variant: "destructive",
       });
     },
@@ -317,7 +331,7 @@ export default function ResumeBuilder() {
         </div>
       )}
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {resumeTemplates.map((template) => (
           <Card 
             key={template.id}

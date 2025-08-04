@@ -11,7 +11,7 @@ import { insertCompanySchema, updateUserProfileSchema } from "@shared/schema";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer";
+// import puppeteer from "puppeteer"; // Temporarily removed due to system dependencies
 import * as cheerio from "cheerio";
 import axios from "axios";
 import mammoth from "mammoth";
@@ -1338,37 +1338,40 @@ ${personalData.name}`;
       // Generate HTML content based on template
       const htmlContent = generateResumeHTML(templateId, resumeData);
       
-      // Launch puppeteer and generate PDF
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
+      // For now, return the HTML content so user can print to PDF
+      // This avoids Puppeteer system dependency issues
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="${resumeData.name || 'resume'}_${templateId}.html"`);
       
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      // Add print-optimized CSS
+      const printOptimizedHTML = htmlContent.replace(
+        '</head>',
+        `
+        <style>
+          @media print {
+            @page { margin: 0.5in; size: A4; }
+            body { print-color-adjust: exact; }
+          }
+          .print-instruction {
+            position: fixed; top: 10px; right: 10px; background: #007bff; color: white; 
+            padding: 10px; border-radius: 5px; font-size: 12px; z-index: 1000;
+          }
+          @media print { .print-instruction { display: none; } }
+        </style>
+        </head>`
+      ).replace(
+        '<body>',
+        `<body>
+          <div class="print-instruction">
+            Press Ctrl+P (or Cmd+P on Mac) to print as PDF
+          </div>`
+      );
       
-      // Generate PDF with proper formatting
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '0.5in',
-          right: '0.5in',
-          bottom: '0.5in',
-          left: '0.5in'
-        }
-      });
-      
-      await browser.close();
-      
-      // Set headers and send PDF
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${resumeData.name || 'resume'}_${templateId}.pdf"`);
-      res.send(pdfBuffer);
+      res.send(printOptimizedHTML);
       
     } catch (error) {
-      console.error("Error generating resume PDF:", error);
-      res.status(500).json({ error: "Failed to generate resume PDF" });
+      console.error("Error generating resume HTML:", error);
+      res.status(500).json({ error: "Failed to generate resume" });
     }
   });
 
