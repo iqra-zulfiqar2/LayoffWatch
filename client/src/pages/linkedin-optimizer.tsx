@@ -21,52 +21,200 @@ import {
   Sparkles,
   RefreshCw,
   Download,
-  ExternalLink
+  ExternalLink,
+  X,
+  Lightbulb,
+  Target,
+  Award
 } from "lucide-react";
 import GlobalHeader from "@/components/GlobalHeader";
 
-const optimizationAreas = [
-  {
-    id: "headline",
-    title: "Professional Headline",
-    description: "Craft a compelling headline that showcases your value proposition",
-    score: 45,
-    status: "needs-improvement"
-  },
-  {
-    id: "summary",
-    title: "About Section",
-    description: "Write a persuasive summary that tells your professional story",
-    score: 60,
-    status: "good"
-  },
-  {
-    id: "experience",
-    title: "Experience Descriptions",
-    description: "Optimize job descriptions with keywords and achievements",
-    score: 30,
-    status: "needs-improvement"
-  },
-  {
-    id: "skills",
-    title: "Skills & Endorsements",
-    description: "Strategic skill selection and endorsement optimization",
-    score: 80,
-    status: "excellent"
-  },
-  {
-    id: "recommendations",
-    title: "Recommendations",
-    description: "Build a portfolio of strong professional recommendations",
-    score: 20,
-    status: "poor"
+const getOptimizationAreas = (profileData: ProfileData | null) => {
+  if (!profileData) {
+    return [
+      {
+        id: "about",
+        title: "About (Summary Section)",
+        description: "Professional summary highlighting your character, strengths, and career goals",
+        score: 0,
+        status: "poor"
+      },
+      {
+        id: "experience",
+        title: "Experience",
+        description: "Detailed work history with quantifiable achievements and impact",
+        score: 0,
+        status: "poor"
+      },
+      {
+        id: "education",
+        title: "Education",
+        description: "Academic background, degrees, institutions, and certifications",
+        score: 0,
+        status: "poor"
+      },
+      {
+        id: "skills",
+        title: "Skills",
+        description: "Hard and soft skills relevant to your field with endorsements",
+        score: 0,
+        status: "poor"
+      },
+      {
+        id: "recommendations",
+        title: "Recommendations",
+        description: "Written testimonials from managers, coworkers, and clients",
+        score: 0,
+        status: "poor"
+      }
+    ];
   }
-];
+
+  const calculateAboutScore = () => {
+    const about = profileData.about || "";
+    if (!about) return 0;
+    let score = 20; // Base score for having content
+    if (about.length > 100) score += 20; // Adequate length
+    if (about.length > 200) score += 20; // Good length
+    if (about.includes("experience") || about.includes("professional")) score += 20; // Professional language
+    if (about.includes("goal") || about.includes("passion") || about.includes("vision")) score += 20; // Career goals
+    return Math.min(score, 100);
+  };
+
+  const calculateExperienceScore = () => {
+    const experience = profileData.experience || [];
+    if (experience.length === 0) return 0;
+    let score = 30; // Base score for having experience
+    if (experience.length >= 2) score += 20; // Multiple positions
+    if (experience.length >= 3) score += 20; // Strong work history
+    // Check for quantifiable impact in descriptions
+    const hasQuantifiableImpact = experience.some(exp => 
+      exp.description && (exp.description.includes('%') || exp.description.includes('increased') || exp.description.includes('improved'))
+    );
+    if (hasQuantifiableImpact) score += 30;
+    return Math.min(score, 100);
+  };
+
+  const calculateSkillsScore = () => {
+    const skills = profileData.skills || [];
+    if (skills.length === 0) return 0;
+    let score = 20; // Base score for having skills
+    if (skills.length >= 5) score += 30; // Good number of skills
+    if (skills.length >= 10) score += 25; // Comprehensive skills
+    if (skills.length >= 15) score += 25; // Excellent skill coverage
+    return Math.min(score, 100);
+  };
+
+  const aboutScore = calculateAboutScore();
+  const experienceScore = calculateExperienceScore();
+  const skillsScore = calculateSkillsScore();
+
+  return [
+    {
+      id: "about",
+      title: "About (Summary Section)",
+      description: "Professional summary highlighting your character, strengths, and career goals",
+      score: aboutScore,
+      status: aboutScore >= 80 ? "excellent" : aboutScore >= 60 ? "good" : aboutScore >= 40 ? "needs-improvement" : "poor"
+    },
+    {
+      id: "experience",
+      title: "Experience",
+      description: "Detailed work history with quantifiable achievements and impact",
+      score: experienceScore,
+      status: experienceScore >= 80 ? "excellent" : experienceScore >= 60 ? "good" : experienceScore >= 40 ? "needs-improvement" : "poor"
+    },
+    {
+      id: "education",
+      title: "Education",
+      description: "Academic background, degrees, institutions, and certifications",
+      score: 50, // Default since we don't extract education data
+      status: "needs-improvement"
+    },
+    {
+      id: "skills",
+      title: "Skills",
+      description: "Hard and soft skills relevant to your field with endorsements",
+      score: skillsScore,
+      status: skillsScore >= 80 ? "excellent" : skillsScore >= 60 ? "good" : skillsScore >= 40 ? "needs-improvement" : "poor"
+    },
+    {
+      id: "recommendations",
+      title: "Recommendations",
+      description: "Written testimonials from managers, coworkers, and clients",
+      score: 20, // Default low since we don't extract recommendations
+      status: "poor"
+    }
+  ];
+};
 
 const keywordSuggestions = [
   "Software Engineer", "Full Stack Developer", "React", "Node.js", "TypeScript",
   "Agile", "Leadership", "Problem Solving", "Team Collaboration", "Innovation"
 ];
+
+const optimizationGuidance = {
+  about: {
+    title: "About (Summary Section)",
+    icon: <MessageSquare className="w-5 h-5" />,
+    tips: [
+      "Share a brief introduction of who you are professionally",
+      "Highlight your character, key strengths, and professional values", 
+      "Outline your career goals or aspirations clearly",
+      "Keep it concise and authentic - this is your personal brand statement",
+      "Aim for 200-400 words to provide enough detail while staying engaging",
+      "Use first person and write in a conversational but professional tone"
+    ]
+  },
+  experience: {
+    title: "Experience",
+    icon: <Award className="w-5 h-5" />,
+    tips: [
+      "List all relevant work experience that aligns with your target roles",
+      "Use 4-5 bullet points for each role to summarize key responsibilities",
+      "Focus on quantifiable impact when possible (e.g., 'increased sales by 20%')",
+      "Highlight achievements rather than just job duties",
+      "Remove unrelated positions once you gain experience in your field",
+      "Use action verbs and specific metrics to demonstrate your impact"
+    ]
+  },
+  education: {
+    title: "Education",
+    icon: <Star className="w-5 h-5" />,
+    tips: [
+      "Include your academic background and degrees earned",
+      "List institutions attended with graduation years",
+      "Add relevant certifications and professional development",
+      "Include honors, awards, or notable academic achievements",
+      "Mention relevant coursework if you're early in your career",
+      "Keep this section concise unless education is highly relevant to your field"
+    ]
+  },
+  skills: {
+    title: "Skills",
+    icon: <Target className="w-5 h-5" />,
+    tips: [
+      "Mirror the skills listed on your resume for consistency",
+      "Prioritize hard and soft skills relevant to your field",
+      "Add this section near the top of your profile for visibility",
+      "Ask colleagues, peers, or managers to endorse your skills",
+      "Include both technical skills and soft skills like leadership",
+      "Update regularly to reflect new skills and technologies you learn"
+    ]
+  },
+  recommendations: {
+    title: "Recommendations", 
+    icon: <Lightbulb className="w-5 h-5" />,
+    tips: [
+      "Written recommendations carry more weight than simple endorsements",
+      "Reach out to former managers, coworkers, or clients for recommendations",
+      "Provide specific examples and context when requesting recommendations", 
+      "Offer to write recommendations for others to build reciprocal relationships",
+      "Aim for 2-3 strong recommendations from different types of professional relationships",
+      "These testimonials strengthen your professional brand and influence recruiters"
+    ]
+  }
+};
 
 interface ProfileData {
   name: string;
@@ -94,7 +242,10 @@ export default function LinkedInOptimizer() {
   const [newHeadline, setNewHeadline] = useState("");
   const [profileScore, setProfileScore] = useState(47);
   const [crawlError, setCrawlError] = useState("");
+  const [selectedOptimization, setSelectedOptimization] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const optimizationAreas = getOptimizationAreas(profileData);
 
   const analyzeProfile = async () => {
     if (!profileUrl || !profileUrl.includes('linkedin.com')) {
@@ -150,15 +301,10 @@ export default function LinkedInOptimizer() {
       setProfileData(profileDataToSet);
       setCurrentHeadline(profileDataToSet.headline || "");
       
-      // Calculate profile score based on completeness
-      let score = 0;
-      if (profileDataToSet.headline) score += 20;
-      if (profileDataToSet.about) score += 25;
-      if (profileDataToSet.experience.length > 0) score += 25;
-      if (profileDataToSet.skills.length > 5) score += 20;
-      if (profileDataToSet.profileImageUrl) score += 10;
-      
-      setProfileScore(score);
+      // Calculate profile score based on optimization areas
+      const areas = getOptimizationAreas(profileDataToSet);
+      const totalScore = areas.reduce((sum, area) => sum + area.score, 0) / areas.length;
+      setProfileScore(Math.round(totalScore));
 
       toast({
         title: "Profile Analyzed!",
@@ -428,7 +574,11 @@ export default function LinkedInOptimizer() {
                               </div>
                               <p className="text-sm text-gray-600">{area.description}</p>
                             </div>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => setSelectedOptimization(area.id)}
+                            >
                               Optimize
                             </Button>
                           </div>
@@ -701,6 +851,54 @@ export default function LinkedInOptimizer() {
           </div>
         </div>
       </div>
+
+      {/* Optimization Guidance Modal */}
+      {selectedOptimization && optimizationGuidance[selectedOptimization as keyof typeof optimizationGuidance] && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  {optimizationGuidance[selectedOptimization as keyof typeof optimizationGuidance].icon}
+                  <h3 className="text-xl font-semibold">
+                    How to Optimize: {optimizationGuidance[selectedOptimization as keyof typeof optimizationGuidance].title}
+                  </h3>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedOptimization(null)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Follow these best practices to improve your {optimizationGuidance[selectedOptimization as keyof typeof optimizationGuidance].title.toLowerCase()} section:
+                </p>
+
+                <div className="space-y-3">
+                  {optimizationGuidance[selectedOptimization as keyof typeof optimizationGuidance].tips.map((tip, index) => (
+                    <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">{tip}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <Button onClick={() => setSelectedOptimization(null)}>
+                    Got it, thanks!
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
