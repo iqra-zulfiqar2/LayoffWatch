@@ -82,12 +82,13 @@ export function setupGoogleAuth(app: Express) {
   );
 
   // Google OAuth routes
-  app.get(
-    "/api/auth/google",
+  app.get("/api/auth/google", (req, res, next) => {
+    console.log("Google OAuth request from:", req.get('host'));
+    console.log("Request URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
     passport.authenticate("google", {
       scope: ["profile", "email"],
-    })
-  );
+    })(req, res, next);
+  });
 
   app.get(
     "/api/auth/google/callback",
