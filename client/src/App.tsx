@@ -27,6 +27,7 @@ import LinkedInOptimizer from "@/pages/linkedin-optimizer";
 import RecruiterOutreach from "@/pages/recruiter-outreach";
 import Signup from "@/pages/Signup";
 import Login from "@/pages/Login";
+import Subscribe from "@/pages/Subscribe";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,6 +35,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/pricing" component={PricingNew} />
+      <Route path="/subscribe" component={Subscribe} />
       <Route path="/signup" component={Signup} />
       <Route path="/login" component={Login} />
       <Route path="/auth" component={AuthEnhanced} />

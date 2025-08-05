@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Info } from "lucide-react";
 import GlobalHeader from "@/components/GlobalHeader";
-import { GlobalFooter } from "@/components/GlobalFooter";
+import GlobalFooter from "@/components/GlobalFooter";
 
 const plan = {
   name: "Layoff Proof Pro",
@@ -40,8 +40,8 @@ export default function Pricing() {
   const [showTrialFeatures, setShowTrialFeatures] = useState(false);
   
   const handleStartTrial = () => {
-    // Handle trial signup logic here
-    console.log("Starting free trial");
+    // Redirect to Stripe payment page
+    window.location.href = "/subscribe";
   };
 
   return (

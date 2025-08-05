@@ -18,6 +18,15 @@ import axios from "axios";
 import mammoth from "mammoth";
 import docxParser from "docx-parser";
 import Anthropic from '@anthropic-ai/sdk';
+import { 
+  stripe, 
+  getOrCreateStripeCustomer, 
+  createSetupIntent, 
+  createSubscription, 
+  createPaymentIntent,
+  cancelSubscription,
+  getSubscription
+} from "./stripe";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
@@ -234,19 +243,206 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Subscription management endpoints
-  app.post('/api/subscription/upgrade', isAuthenticated, async (req: any, res) => {
+  // Stripe payment endpoints
+  
+  // Start trial - create setup intent to save payment method for future use
+  app.post('/api/stripe/start-trial', isAuthenticatedAny, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const user = req.user;
+      
+      // Get or create Stripe customer
+      const stripeCustomerId = await getOrCreateStripeCustomer(user);
+      
+      // Update user with Stripe customer ID if not exists
+      if (!user.stripeCustomerId) {
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+      
+      // Create setup intent for saving payment method
+      const setupIntent = await createSetupIntent(stripeCustomerId);
+      
+      res.json({
+        clientSecret: setupIntent.client_secret,
+        customerId: stripeCustomerId,
+        message: "Trial started! Add your payment method to continue after the 7-day trial."
+      });
+    } catch (error) {
+      console.error("Error starting trial:", error);
+      res.status(500).json({ message: "Failed to start trial" });
+    }
+  });
+
+  // Create subscription after trial or direct upgrade
+  app.post('/api/stripe/create-subscription', isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const { paymentMethodId } = req.body;
+      
+      // Stripe price ID for $19/month subscription
+      const PRICE_ID = "price_1RsltSHCGnA3q5eCkSSdSDqi"; // Created for testing
+      
+      let stripeCustomerId = user.stripeCustomerId;
+      
+      // Get or create Stripe customer if not exists
+      if (!stripeCustomerId) {
+        stripeCustomerId = await getOrCreateStripeCustomer(user);
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+      
+      // Create subscription
+      const subscription = await createSubscription(stripeCustomerId, PRICE_ID, paymentMethodId);
+      
+      // Update user subscription in database
+      await storage.updateUser(user.id, {
+        stripeSubscriptionId: subscription.id,
+        subscriptionPlan: "pro",
+        subscriptionStatus: subscription.status === "active" ? "active" : "pending",
+      });
+      
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        status: subscription.status,
+        message: "Subscription created successfully!"
+      });
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Failed to create subscription" });
+    }
+  });
+
+  // Create one-time payment intent (alternative to subscription)
+  app.post('/api/stripe/create-payment-intent', isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const { amount = 19 } = req.body; // Default $19
+      
+      let stripeCustomerId = user.stripeCustomerId;
+      
+      if (!stripeCustomerId) {
+        stripeCustomerId = await getOrCreateStripeCustomer(user);
+        await storage.updateUser(user.id, { stripeCustomerId });
+      }
+      
+      const paymentIntent = await createPaymentIntent(amount, stripeCustomerId);
+      
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        amount: amount,
+        message: "Payment intent created successfully!"
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
+  // Cancel subscription
+  app.post('/api/stripe/cancel-subscription', isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ message: "No active subscription found" });
+      }
+      
+      const canceledSubscription = await cancelSubscription(user.stripeSubscriptionId);
+      
+      // Update user subscription status
+      await storage.updateUser(user.id, {
+        subscriptionStatus: "canceled",
+      });
+      
+      res.json({
+        message: "Subscription canceled successfully",
+        status: canceledSubscription.status,
+      });
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      res.status(500).json({ message: "Failed to cancel subscription" });
+    }
+  });
+
+  // Get subscription status
+  app.get('/api/stripe/subscription-status', isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      if (!user.stripeSubscriptionId) {
+        return res.json({
+          hasSubscription: false,
+          status: user.subscriptionStatus,
+          plan: user.subscriptionPlan,
+          trialEndDate: user.trialEndDate,
+        });
+      }
+      
+      const subscription = await getSubscription(user.stripeSubscriptionId);
+      
+      res.json({
+        hasSubscription: true,
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        plan: user.subscriptionPlan,
+        trialEndDate: user.trialEndDate,
+      });
+    } catch (error) {
+      console.error("Error fetching subscription status:", error);
+      res.status(500).json({ message: "Failed to fetch subscription status" });
+    }
+  });
+
+  // Webhook endpoint for Stripe events (important for production)
+  app.post('/api/stripe/webhook', async (req, res) => {
+    try {
+      const sig = req.headers['stripe-signature'] as string;
+      
+      // In production, verify the webhook signature
+      // const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      
+      // For development, just parse the body
+      const event = req.body;
+      
+      switch (event.type) {
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted':
+          const subscription = event.data.object;
+          // Update user subscription status in database
+          // Find user by stripeCustomerId and update
+          break;
+        case 'invoice.payment_succeeded':
+          const invoice = event.data.object;
+          // Handle successful payment
+          break;
+        case 'invoice.payment_failed':
+          const failedInvoice = event.data.object;
+          // Handle failed payment
+          break;
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+      }
+      
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Webhook error:", error);
+      res.status(400).json({ message: "Webhook error" });
+    }
+  });
+
+  // Legacy subscription management endpoints (keeping for backward compatibility)
+  app.post('/api/subscription/upgrade', isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
       const { plan } = req.body;
       
-      // For now, just update the user's plan (would integrate with Stripe)
       await storage.updateUserSubscription(userId, plan, "active");
       
       res.json({ 
         success: true, 
         message: `Successfully upgraded to ${plan} plan`,
-        requiresPayment: plan !== "free"
+        requiresPayment: plan !== "trial"
       });
     } catch (error) {
       console.error("Error upgrading subscription:", error);
@@ -254,9 +450,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/subscription/update', isAuthenticated, async (req: any, res) => {
+  app.post('/api/subscription/update', isAuthenticatedAny, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { companies, email, phoneNumber, emailNotifications, smsNotifications } = req.body;
       
       // Update user profile
@@ -277,9 +473,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user/subscriptions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/subscriptions', isAuthenticatedAny, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const subscriptions = await storage.getUserCompanySubscriptions(userId);
       res.json(subscriptions);
     } catch (error) {
