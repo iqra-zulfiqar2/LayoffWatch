@@ -88,42 +88,76 @@ export default function ResumeBuilder() {
 
   const generateResumeMutation = useMutation({
     mutationFn: async (data: { templateId: string; resumeData: ParsedResumeData }) => {
-      const response = await fetch('/api/generate-resume-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate resume');
+      try {
+        const response = await fetch('/api/generate-resume-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server error response:', errorText);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        const htmlContent = await response.text();
+        console.log('Resume HTML generated successfully');
+        return htmlContent;
+      } catch (error) {
+        console.error('Error in generateResumeMutation:', error);
+        throw error;
       }
-      
-      return response.text();
     },
     onSuccess: (htmlContent) => {
-      // Open HTML in new window for printing to PDF
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        printWindow.focus();
-        
-        // Auto-trigger print dialog after a brief delay
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
+      try {
+        // Open HTML in new window for printing to PDF
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(htmlContent);
+          printWindow.document.close();
+          printWindow.focus();
+          
+          // Auto-trigger print dialog after a brief delay
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+          
+          toast({
+            title: "Resume Generated Successfully",
+            description: "A new window opened with your resume. Use Ctrl+P (or Cmd+P) to save as PDF.",
+          });
+        } else {
+          // Fallback if popup is blocked
+          const blob = new Blob([htmlContent], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${extractedData?.name || 'resume'}_${selectedTemplate}.html`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          toast({
+            title: "Resume Downloaded",
+            description: "Your resume has been downloaded as an HTML file. Open it in a browser and print to PDF.",
+          });
+        }
+      } catch (error) {
+        console.error('Error handling resume generation success:', error);
+        toast({
+          title: "Display Error",
+          description: "Resume generated but couldn't open in new window. Please try again.",
+          variant: "destructive",
+        });
       }
-      
-      toast({
-        title: "Resume Generated Successfully",
-        description: "A new window opened with your resume. Use Ctrl+P (or Cmd+P) to save as PDF.",
-      });
     },
     onError: (error) => {
       console.error("Resume generation error:", error);
       toast({
         title: "Generation Failed",
-        description: "Failed to generate your resume. Please try again.",
+        description: error.message || "Failed to generate your resume. Please try again.",
         variant: "destructive",
       });
     },
