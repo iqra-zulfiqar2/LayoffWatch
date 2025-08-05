@@ -1562,6 +1562,8 @@ ${personalData.name}`;
     try {
       const { templateId, resumeData } = req.body;
       
+      console.log("Resume generation request:", { templateId, resumeData });
+      
       if (!templateId || !resumeData) {
         return res.status(400).json({ error: "Template ID and resume data are required" });
       }
@@ -1602,6 +1604,8 @@ ${personalData.name}`;
       
     } catch (error) {
       console.error("Error generating resume HTML:", error);
+      console.error("Error details:", error.message);
+      console.error("Stack trace:", error.stack);
       res.status(500).json({ error: "Failed to generate resume" });
     }
   });
@@ -1612,22 +1616,19 @@ ${personalData.name}`;
 
 // Resume HTML template generation function
 function generateResumeHTML(templateId: string, resumeData: any): string {
-  const baseStyles = `
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; }
-      .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-      h1 { font-size: 2.5em; margin-bottom: 10px; }
-      h2 { font-size: 1.5em; margin: 20px 0 10px 0; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
-      h3 { font-size: 1.2em; margin: 15px 0 5px 0; }
-      .header { text-align: center; margin-bottom: 30px; }
-      .contact-info { font-size: 0.9em; margin: 10px 0; }
-      .section { margin-bottom: 25px; }
-      .experience-item, .education-item { margin-bottom: 15px; }
-      .skills-list { display: flex; flex-wrap: wrap; gap: 10px; }
-      .skill-tag { background: #f0f0f0; padding: 5px 10px; border-radius: 5px; font-size: 0.9em; }
-    </style>
-  `;
+  console.log("Generating resume with template:", templateId);
+  console.log("Resume data:", JSON.stringify(resumeData, null, 2));
+  
+  // Helper function to safely process skills
+  const processSkills = (skills: any, fallback: string[] = ['JavaScript', 'React', 'Node.js']): string[] => {
+    if (Array.isArray(skills)) {
+      return skills.map(skill => typeof skill === 'string' ? skill : String(skill));
+    } else if (typeof skills === 'string') {
+      return skills.split(',').map(skill => skill.trim());
+    } else {
+      return fallback;
+    }
+  };
 
   switch (templateId) {
     case 'professional':
@@ -1718,8 +1719,8 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
             <div class="section">
               <h2>Skills</h2>
               <div class="skills-grid">
-                ${(resumeData.skills || 'JavaScript, React, Node.js, Python, AWS, Git').split(',').slice(0, 6).map((skill: string) => 
-                  `<div class="skill-item"><span class="skill-name">${skill.trim()}</span><span class="skill-level">(Expert)</span></div>`
+                ${processSkills(resumeData.skills, ['JavaScript', 'React', 'Node.js', 'Python', 'AWS', 'Git']).slice(0, 6).map(skill => 
+                  `<div class="skill-item"><span class="skill-name">${skill}</span><span class="skill-level">(Expert)</span></div>`
                 ).join('')}
               </div>
             </div>
@@ -1774,7 +1775,23 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
 
             <div class="section summary">
               <h2>Summary</h2>
-              <p>Passionate about entering the tech industry with a focus on ${resumeData.profession?.toLowerCase() || 'game development and coding'}. With a history of engaging roles, including creative experiences in Unity and ${resumeData.skills?.split(',')[0] || 'JavaScript'} development, seeking an IT internship in ${resumeData.location || 'Charleston, SC'} for Summer where I can apply my coding skills in C#, ${resumeData.skills || 'JavaScript, and web development'}, while further enhancing my practical experience in a dynamic tech environment.</p>
+              <p>Passionate about entering the tech industry with a focus on ${resumeData.profession?.toLowerCase() || 'game development and coding'}. With a history of engaging roles, including creative experiences in Unity and ${(() => {
+                if (Array.isArray(resumeData.skills) && resumeData.skills.length > 0) {
+                  return resumeData.skills[0];
+                } else if (typeof resumeData.skills === 'string' && resumeData.skills.includes(',')) {
+                  return resumeData.skills.split(',')[0].trim();
+                } else {
+                  return 'JavaScript';
+                }
+              })()} development, seeking an IT internship in ${resumeData.location || 'Charleston, SC'} for Summer where I can apply my coding skills in C#, ${(() => {
+                if (Array.isArray(resumeData.skills)) {
+                  return resumeData.skills.join(', ');
+                } else if (typeof resumeData.skills === 'string') {
+                  return resumeData.skills;
+                } else {
+                  return 'JavaScript, and web development';
+                }
+              })()}, while further enhancing my practical experience in a dynamic tech environment.</p>
             </div>
 
             <div class="section">
@@ -1837,8 +1854,8 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
             <div class="section skills-section">
               <h2>Skills</h2>
               <ul>
-                ${(resumeData.skills || 'Game Design and Development, Unity Engine Expertise, C# Programming, WebAssembly, JavaScript Development, Full-Stack Web Development, Version Control with Git, Team Leadership, Donor Engagement').split(',').map((skill: string) => 
-                  `<li>${skill.trim()}</li>`
+                ${processSkills(resumeData.skills, ['Game Design and Development', 'Unity Engine Expertise', 'C# Programming', 'WebAssembly', 'JavaScript Development', 'Full-Stack Web Development', 'Version Control with Git', 'Team Leadership', 'Donor Engagement']).map(skill => 
+                  `<li>${skill}</li>`
                 ).join('')}
               </ul>
             </div>
@@ -1948,8 +1965,8 @@ function generateResumeHTML(templateId: string, resumeData: any): string {
 
               <div class="section">
                 <h3>SKILLS</h3>
-                ${(resumeData.skills || 'Project Management, Public Relations, Teamwork, Time Management, Leadership, Effective Communication, Critical Thinking').split(',').map((skill: string) => 
-                  `<div class="skill-item">• ${skill.trim()}</div>`
+                ${processSkills(resumeData.skills, ['Project Management', 'Public Relations', 'Teamwork', 'Time Management', 'Leadership', 'Effective Communication', 'Critical Thinking']).map(skill => 
+                  `<div class="skill-item">• ${skill}</div>`
                 ).join('')}
               </div>
 
