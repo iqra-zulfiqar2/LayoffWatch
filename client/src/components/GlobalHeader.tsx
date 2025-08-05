@@ -80,7 +80,7 @@ function GlobalHeader() {
                   <Button variant="ghost" size="sm" className="flex items-center gap-2">
                     <User className="w-4 h-4" />
                     <span className="hidden md:inline">
-                      {user?.firstName || user?.email}
+                      {(user as any)?.firstName || (user as any)?.email}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>

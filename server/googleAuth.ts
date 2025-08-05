@@ -10,14 +10,19 @@ export function setupGoogleAuth(app: Express) {
     return;
   }
 
-  // Try using the environment domain which should be more reliable
-  const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || "897be05a-eedd-41cb-a108-3708fd414388-00-3s5emoy4czxac.worf.replit.dev";
-  const callbackURL = `https://${domain}/api/auth/google/callback`;
+  // Create a dynamic callback URL function instead of static URL
+  const getCallbackURL = (req: any) => {
+    const protocol = req.protocol || 'https';
+    const host = req.get('host') || req.get('x-forwarded-host') || "897be05a-eedd-41cb-a108-3708fd414388-00-3s5emoy4czxac.worf.replit.dev";
+    return `${protocol}://${host}/api/auth/google/callback`;
+  };
+  
+  // Use the expected static URL for Passport config
+  const callbackURL = "https://897be05a-eedd-41cb-a108-3708fd414388-00-3s5emoy4czxac.worf.replit.dev/api/auth/google/callback";
   
   console.log("Google OAuth callback URL:", callbackURL);
   console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
   console.log("Domain from env:", process.env.REPLIT_DOMAINS);
-  console.log("Using domain:", domain);
 
   passport.use(
     new GoogleStrategy(
@@ -25,8 +30,9 @@ export function setupGoogleAuth(app: Express) {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL,
+        passReqToCallback: true,
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (req: any, accessToken: string, refreshToken: string, profile: any, done: any) => {
         try {
           const email = profile.emails?.[0]?.value;
           if (!email) {
@@ -82,19 +88,32 @@ export function setupGoogleAuth(app: Express) {
     )
   );
 
-  // Google OAuth routes
-  app.get("/api/auth/google", (req, res, next) => {
-    console.log("=== Google OAuth Debug ===");
-    console.log("Host:", req.get('host'));
-    console.log("Protocol:", req.protocol);
-    console.log("Original URL:", req.originalUrl);
-    console.log("Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
-    console.log("Configured callback URL:", callbackURL);
-    console.log("========================");
+  // Manual Google OAuth URL generation to bypass potential caching issues
+  app.get("/api/auth/google", (req, res) => {
+    const actualHost = req.get('host');
+    const actualProtocol = req.protocol;
+    const actualCallback = `${actualProtocol}://${actualHost}/api/auth/google/callback`;
     
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-    })(req, res, next);
+    console.log("=== Google OAuth Manual Redirect ===");
+    console.log("Host:", actualHost);
+    console.log("Protocol:", actualProtocol);
+    console.log("Callback URL:", actualCallback);
+    console.log("Configured URL:", callbackURL);
+    console.log("Match:", actualCallback === callbackURL);
+    console.log("====================================");
+    
+    // Manual redirect to Google OAuth with exact parameters
+    const googleURL = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `response_type=code&` +
+      `client_id=${process.env.GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(callbackURL)}&` +
+      `scope=profile%20email&` +
+      `access_type=offline&` +
+      `prompt=consent&` +
+      `state=manual_redirect`;
+    
+    console.log("Redirecting to:", googleURL);
+    res.redirect(googleURL);
   });
 
   app.get(
