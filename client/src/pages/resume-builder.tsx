@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, FileText, Download, ArrowLeft, ArrowRight, Linkedin, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { Upload, FileText, Download, ArrowLeft, ArrowRight, Linkedin, ExternalLink, Plus, Trash2, Sparkles, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -46,13 +46,14 @@ const resumeTemplates: ResumeTemplate[] = [
 ];
 
 export default function ResumeBuilder() {
-  const [currentStep, setCurrentStep] = useState<'select' | 'upload' | 'linkedin-url' | 'manual-form' | 'templates' | 'preview'>('select');
+  const [currentStep, setCurrentStep] = useState<'select' | 'upload' | 'linkedin-url' | 'manual-form' | 'ai-prompt' | 'templates' | 'preview'>('select');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<ParsedResumeData | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState<string>('');
-  const [buildMethod, setBuildMethod] = useState<'upload' | 'linkedin' | 'manual' | null>(null);
+  const [buildMethod, setBuildMethod] = useState<'upload' | 'linkedin' | 'manual' | 'ai' | null>(null);
+  const [aiPrompt, setAiPrompt] = useState<string>('');
   const [manualData, setManualData] = useState<ParsedResumeData>({
     name: '',
     email: '',
@@ -344,6 +345,159 @@ export default function ResumeBuilder() {
       title: "Information Saved",
       description: "Your resume information has been saved. Choose a template below.",
     });
+  };
+
+  const aiGenerateMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      console.log("AI generate mutation starting with prompt:", prompt);
+      return await apiRequest('POST', '/api/generate-resume-ai', { prompt });
+    },
+    onSuccess: (data) => {
+      console.log("AI generation successful:", data);
+      setExtractedData(data.parsedData);
+      setCurrentStep('templates');
+      toast({
+        title: "Resume Generated",
+        description: "Your resume has been generated from your description. Choose a template below.",
+      });
+    },
+    onError: (error) => {
+      console.error("AI generation error:", error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate your resume. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAiGenerate = () => {
+    if (!aiPrompt.trim() || aiPrompt.trim().length < 50) {
+      toast({
+        title: "Description Too Short",
+        description: "Please provide at least 50 characters describing your career background.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    aiGenerateMutation.mutate(aiPrompt);
+  };
+
+  const renderAiPromptStep = () => {
+    const examplePrompts = [
+      "I'm a software engineer with 5 years of experience in React and Node.js, looking to transition to a senior role.",
+      "Recent marketing graduate with internship experience at social media companies, seeking entry-level positions.",
+      "Experienced project manager transitioning from construction to tech industry, with PMP certification.",
+      "Data scientist with PhD in Statistics and 3 years in healthcare analytics, targeting fintech roles."
+    ];
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-4">
+          <div className="bg-purple-50 dark:bg-purple-950 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Generate Resume with AI
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Describe your career background, skills, and goals. Our AI will create a professional resume for you.
+          </p>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center space-x-8 mb-8">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+            <span className="text-sm font-medium text-purple-600">Choose Option</span>
+          </div>
+          <div className="w-16 h-px bg-gray-300"></div>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+            <span className="text-sm font-medium text-purple-600">Select Template</span>
+          </div>
+          <div className="w-16 h-px bg-gray-300"></div>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+            <span className="text-sm font-medium text-gray-600">Preview & Download</span>
+          </div>
+        </div>
+
+        <Card>
+          <CardContent className="p-8 space-y-6">
+            <div>
+              <Label htmlFor="career-description" className="text-lg font-semibold text-gray-900 dark:text-white">
+                Describe your career background
+              </Label>
+              <Textarea
+                id="career-description"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="Tell us about your professional experience, education, skills, and career goals. The more details you provide, the better your resume will be..."
+                className="mt-2 min-h-[120px] resize-none"
+                maxLength={500}
+              />
+              <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
+                <span>{aiPrompt.length}/500 characters (minimum 50 required)</span>
+                <span className={aiPrompt.length >= 50 ? "text-green-600" : "text-red-500"}>
+                  {aiPrompt.length >= 50 ? "✓ Good length" : "Need more details"}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 dark:bg-purple-950 rounded-lg p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Lightbulb className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">
+                  Example prompts:
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {examplePrompts.map((prompt, index) => (
+                  <div
+                    key={index}
+                    className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-800 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900 transition-colors"
+                    onClick={() => setAiPrompt(prompt)}
+                  >
+                    <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                      "{prompt}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-6 border-t">
+              <Button
+                onClick={() => setCurrentStep('select')}
+                variant="outline"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Options
+              </Button>
+              <Button
+                onClick={handleAiGenerate}
+                disabled={aiPrompt.trim().length < 50 || aiGenerateMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8"
+              >
+                {aiGenerateMutation.isPending ? (
+                  <>
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    Generating Resume...
+                  </>
+                ) : (
+                  <>
+                    Generate Resume with AI
+                    <Sparkles className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   };
 
   const renderManualFormStep = () => (
@@ -785,7 +939,7 @@ export default function ResumeBuilder() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 gap-6">
         {/* Upload Resume Option */}
         <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer group"
               onClick={() => {
@@ -797,14 +951,14 @@ export default function ResumeBuilder() {
               <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Upload Existing Resume
+              Select An Existing Resume
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               Upload your current resume and we'll extract all the information to build upon
             </p>
-            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200">
-              Most Popular
-            </Badge>
+            <Button variant="outline" className="mt-2">
+              Upload Resume
+            </Button>
           </CardContent>
         </Card>
 
@@ -822,16 +976,38 @@ export default function ResumeBuilder() {
               Build Using LinkedIn
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Import your LinkedIn profile data to automatically populate your resume
+              Import your professional information directly from your LinkedIn profile
             </p>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200">
-              Quick & Easy
-            </Badge>
+            <Button variant="outline" className="mt-2">
+              Connect LinkedIn
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Start With AI Prompt Option */}
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer group"
+              onClick={() => {
+                setBuildMethod('ai');
+                setCurrentStep('ai-prompt');
+              }}>
+          <CardContent className="p-8 text-center">
+            <div className="bg-purple-50 dark:bg-purple-950 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-100 dark:group-hover:bg-purple-900 transition-colors">
+              <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Start With AI Prompt
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Describe your career and let AI create a professional resume for you
+            </p>
+            <Button variant="outline" className="mt-2">
+              Start with AI
+            </Button>
           </CardContent>
         </Card>
 
         {/* Choose A Blank Template Option */}
-        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer group"
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 transition-colors cursor-pointer group"
               onClick={() => {
                 setBuildMethod('manual');
                 setCurrentStep('manual-form');
@@ -846,7 +1022,7 @@ export default function ResumeBuilder() {
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               Start from scratch with a clean template and fill in your details manually
             </p>
-            <Button className="mt-2 bg-blue-600 hover:bg-blue-700 text-white">
+            <Button variant="outline" className="mt-2">
               Start Building
             </Button>
           </CardContent>
@@ -1174,6 +1350,8 @@ export default function ResumeBuilder() {
               setCurrentStep('linkedin-url');
             } else if (buildMethod === 'manual') {
               setCurrentStep('manual-form');
+            } else if (buildMethod === 'ai') {
+              setCurrentStep('ai-prompt');
             } else {
               setCurrentStep('upload');
             }
@@ -1181,7 +1359,8 @@ export default function ResumeBuilder() {
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           {buildMethod === 'linkedin' ? 'Back to LinkedIn' : 
-           buildMethod === 'manual' ? 'Back to Form' : 'Back to Upload'}
+           buildMethod === 'manual' ? 'Back to Form' : 
+           buildMethod === 'ai' ? 'Back to AI Prompt' : 'Back to Upload'}
         </Button>
         <Button 
           onClick={handleGenerateResume}
@@ -1200,6 +1379,7 @@ export default function ResumeBuilder() {
         {currentStep === 'select' && renderSelectStep()}
         {currentStep === 'upload' && renderUploadStep()}
         {currentStep === 'linkedin-url' && renderLinkedinUrlStep()}
+        {currentStep === 'ai-prompt' && renderAiPromptStep()}
         {currentStep === 'manual-form' && renderManualFormStep()}
         {currentStep === 'templates' && renderTemplatesStep()}
       </div>

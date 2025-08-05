@@ -16,6 +16,7 @@ import * as cheerio from "cheerio";
 import axios from "axios";
 import mammoth from "mammoth";
 import docxParser from "docx-parser";
+import Anthropic from '@anthropic-ai/sdk';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
@@ -1795,6 +1796,120 @@ ${personalData.name}`;
   });
 
   // Resume PDF Generation endpoint
+  // AI Resume Generation endpoint
+  app.post("/api/generate-resume-ai", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      console.log("AI resume generation request with prompt:", prompt);
+      
+      if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 50) {
+        return res.status(400).json({ error: "Prompt must be at least 50 characters long" });
+      }
+
+      if (!process.env.ANTHROPIC_API_KEY) {
+        console.error("ANTHROPIC_API_KEY not configured");
+        return res.status(500).json({ error: "AI service not configured" });
+      }
+
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+
+      const aiPrompt = `You are a professional resume writer. Based on the following career description, create a structured resume data in JSON format.
+
+Career Description: "${prompt}"
+
+Please extract and generate the following information in valid JSON format:
+{
+  "name": "Extract or infer person's name, or use 'Your Name' if not available",
+  "email": "Extract email if mentioned, or use empty string",
+  "phone": "Extract phone if mentioned, or use empty string",
+  "profession": "Create a professional title based on the description",
+  "summary": "Write a professional summary (2-3 sentences) based on the description",
+  "experience": [
+    {
+      "title": "Job title",
+      "company": "Company name",
+      "duration": "Duration (e.g., 'Jan 2020 - Present')",
+      "description": "Brief description of the role",
+      "responsibilities": ["Responsibility 1", "Responsibility 2", "Responsibility 3"]
+    }
+  ],
+  "skills": ["Skill 1", "Skill 2", "Skill 3", "etc"],
+  "education": [
+    {
+      "degree": "Degree name",
+      "institution": "School/University name",
+      "year": "Year or date range",
+      "gpa": "GPA if mentioned, optional"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Certification name",
+      "issuer": "Issuing organization",
+      "year": "Year obtained"
+    }
+  ],
+  "achievements": ["Achievement 1", "Achievement 2"],
+  "projects": [
+    {
+      "name": "Project name",
+      "description": "Project description",
+      "technologies": ["Tech 1", "Tech 2"]
+    }
+  ],
+  "languages": ["English", "Other languages"],
+  "location": "Infer or extract location",
+  "linkedin": "LinkedIn URL if mentioned",
+  "github": "GitHub URL if mentioned",
+  "website": "Website URL if mentioned"
+}
+
+Rules:
+- Infer missing information based on industry standards and the description provided
+- Create realistic experience entries based on the career level described
+- Include relevant skills for the profession mentioned
+- If specific details aren't provided, create professional placeholders that match the career level
+- Ensure all arrays have at least some realistic entries
+- Make the content professional and tailored to the described career path
+
+Return ONLY the JSON object, no additional text or formatting.`;
+
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: aiPrompt }],
+      });
+
+      console.log("AI response received");
+      
+      let parsedData;
+      try {
+        const responseText = response.content[0].text.trim();
+        console.log("AI response text:", responseText);
+        
+        // Extract JSON from response (in case there's extra text)
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : responseText;
+        
+        parsedData = JSON.parse(jsonString);
+        console.log("Parsed AI resume data:", parsedData);
+        
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        return res.status(500).json({ error: "Failed to parse AI response" });
+      }
+
+      res.json({ parsedData });
+      
+    } catch (error) {
+      console.error("Error generating AI resume:", error);
+      res.status(500).json({ error: "Failed to generate AI resume" });
+    }
+  });
+
   app.post("/api/generate-resume-pdf", async (req, res) => {
     try {
       const { templateId, resumeData } = req.body;
