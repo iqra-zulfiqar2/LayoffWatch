@@ -62,7 +62,7 @@ export interface IStorage {
   getAllCompanies(): Promise<Company[]>;
   
   // Subscription methods
-  updateUserSubscription(userId: string, plan: string): Promise<void>;
+  updateUserSubscription(userId: string, plan: string): Promise<User>;
   updateUserCompanySubscriptions(userId: string, companyIds: string[]): Promise<void>;
   getUserCompanySubscriptions(userId: string): Promise<any[]>;
   
@@ -82,6 +82,7 @@ export interface IStorage {
     isEmailVerified: boolean;
   }): Promise<User>;
   updateUserLastLogin(userId: string): Promise<void>;
+  updateUser(userId: string, updates: Partial<User>): Promise<User>;
   
   // Admin operations
   getCompanyCount(): Promise<number>;
@@ -380,10 +381,7 @@ export class DatabaseStorage implements IStorage {
     return subscriptions;
   }
 
-  // Admin operations
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
-  }
+  // Admin operations - removed duplicate getAllUsers method
 
   async getAllCompanies(): Promise<Company[]> {
     return await db.select().from(companies);
@@ -472,6 +470,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async updateUser(userId: string, updates: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
   // Admin operations implementation
   async getCompanyCount(): Promise<number> {
     const result = await db.select({ count: count() }).from(companies);
@@ -502,7 +512,7 @@ export class DatabaseStorage implements IStorage {
   async updateCompany(id: string, updates: Partial<Company>): Promise<Company> {
     const [company] = await db
       .update(companies)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(companies.id, id))
       .returning();
     return company;

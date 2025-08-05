@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupMagicAuth, isMagicAuthenticated } from "./magicAuth";
 import { setupPasswordAuth, isAuthenticatedAny } from "./passwordAuth";
-// import { setupGoogleAuth } from "./googleAuth";
+import { setupGoogleAuth } from "./googleAuth";
 // import { setupLinkedInAuth } from "./linkedinAuth";
 import { analyzeJobSecurityRisk } from "./anthropic";
 import { dataIntegrator } from "./data-integrator";
@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app); 
   setupMagicAuth(app);
   setupPasswordAuth(app);
-  // setupGoogleAuth(app);  // Disabled until API keys are configured
+  setupGoogleAuth(app);
   // setupLinkedInAuth(app);  // Disabled until API keys are configured
 
   // Auth routes
