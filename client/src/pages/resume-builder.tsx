@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, FileText, Download, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Upload, FileText, Download, ArrowLeft, ArrowRight, Linkedin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -44,11 +44,13 @@ const resumeTemplates: ResumeTemplate[] = [
 ];
 
 export default function ResumeBuilder() {
-  const [currentStep, setCurrentStep] = useState<'select' | 'upload' | 'templates' | 'preview'>('select');
+  const [currentStep, setCurrentStep] = useState<'select' | 'upload' | 'linkedin-url' | 'templates' | 'preview'>('select');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<ParsedResumeData | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [linkedinUrl, setLinkedinUrl] = useState<string>('');
+  const [buildMethod, setBuildMethod] = useState<'upload' | 'linkedin' | null>(null);
   const { toast } = useToast();
 
   const uploadMutation = useMutation({
@@ -84,6 +86,27 @@ export default function ResumeBuilder() {
         variant: "destructive",
       });
     },
+  });
+
+  const linkedinImportMutation = useMutation({
+    mutationFn: async (profileUrl: string) => {
+      return apiRequest('POST', '/api/import-linkedin-resume', { profileUrl });
+    },
+    onSuccess: (data) => {
+      setExtractedData(data.resumeData);
+      setCurrentStep('templates');
+      toast({
+        title: "LinkedIn Profile Imported Successfully",
+        description: "Your profile information has been extracted and is ready for template selection.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to import LinkedIn profile. Please check the URL and try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   const generateResumeMutation = useMutation({
@@ -188,6 +211,32 @@ export default function ResumeBuilder() {
     }
   };
 
+  const handleLinkedinImport = async () => {
+    if (!linkedinUrl) {
+      toast({
+        title: "LinkedIn URL Required",
+        description: "Please enter your LinkedIn profile URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!linkedinUrl.includes('linkedin.com')) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid LinkedIn profile URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await linkedinImportMutation.mutateAsync(linkedinUrl);
+    } catch (error) {
+      console.error("LinkedIn import failed:", error);
+    }
+  };
+
   const handleGenerateResume = () => {
     if (extractedData && selectedTemplate) {
       generateResumeMutation.mutate({
@@ -198,31 +247,137 @@ export default function ResumeBuilder() {
   };
 
   const renderSelectStep = () => (
-    <div className="max-w-2xl mx-auto text-center space-y-8">
+    <div className="max-w-4xl mx-auto text-center space-y-8">
       <div className="bg-blue-50 dark:bg-blue-950 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
-        <Upload className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
       </div>
       
       <div className="space-y-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Select An Existing Resume
+          Build Your Resume
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Upload your current resume and we'll extract all the information to build upon
+          Choose how you'd like to get started with your resume
         </p>
       </div>
 
-      <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
-        <CardContent className="p-8">
-          <Button 
-            onClick={() => setCurrentStep('upload')}
-            className="w-full h-12 text-lg"
-            size="lg"
-          >
-            Upload Resume
-          </Button>
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Upload Resume Option */}
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer group"
+              onClick={() => {
+                setBuildMethod('upload');
+                setCurrentStep('upload');
+              }}>
+          <CardContent className="p-8 text-center">
+            <div className="bg-blue-50 dark:bg-blue-950 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 dark:group-hover:bg-blue-900 transition-colors">
+              <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Upload Existing Resume
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Upload your current resume and we'll extract all the information to build upon
+            </p>
+            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200">
+              Most Popular
+            </Badge>
+          </CardContent>
+        </Card>
+
+        {/* LinkedIn Import Option */}
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer group"
+              onClick={() => {
+                setBuildMethod('linkedin');
+                setCurrentStep('linkedin-url');
+              }}>
+          <CardContent className="p-8 text-center">
+            <div className="bg-blue-50 dark:bg-blue-950 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 dark:group-hover:bg-blue-900 transition-colors">
+              <Linkedin className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Build Using LinkedIn
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Import your LinkedIn profile data to automatically populate your resume
+            </p>
+            <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200">
+              Quick & Easy
+            </Badge>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderLinkedinUrlStep = () => (
+    <div className="max-w-2xl mx-auto text-center space-y-8">
+      <div className="bg-blue-50 dark:bg-blue-950 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+        <Linkedin className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+      </div>
+      
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Import from LinkedIn
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Enter your LinkedIn profile URL to automatically import your professional information
+        </p>
+      </div>
+
+      <Card>
+        <CardContent className="p-8 space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="linkedin-url" className="text-left block">
+              LinkedIn Profile URL
+            </Label>
+            <Input
+              id="linkedin-url"
+              type="url"
+              placeholder="https://www.linkedin.com/in/your-profile"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              className="w-full"
+            />
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-left">
+              Make sure your LinkedIn profile is set to public or has basic information visible
+            </p>
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              onClick={() => setCurrentStep('select')}
+              variant="outline"
+              className="flex-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Button
+              onClick={handleLinkedinImport}
+              disabled={linkedinImportMutation.isPending || !linkedinUrl}
+              className="flex-1"
+            >
+              {linkedinImportMutation.isPending ? (
+                "Importing..."
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Import from LinkedIn
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <div className="text-left bg-blue-50 dark:bg-blue-950 rounded-lg p-4">
+        <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">How to find your LinkedIn URL:</h3>
+        <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
+          <li>Go to your LinkedIn profile page</li>
+          <li>Copy the URL from your browser's address bar</li>
+          <li>It should look like: https://www.linkedin.com/in/your-name</li>
+        </ol>
+      </div>
     </div>
   );
 
@@ -468,10 +623,10 @@ export default function ResumeBuilder() {
       <div className="flex justify-between mt-8">
         <Button 
           variant="outline" 
-          onClick={() => setCurrentStep('upload')}
+          onClick={() => setCurrentStep(buildMethod === 'linkedin' ? 'linkedin-url' : 'upload')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Upload
+          {buildMethod === 'linkedin' ? 'Back to LinkedIn' : 'Back to Upload'}
         </Button>
         <Button 
           onClick={handleGenerateResume}
@@ -489,6 +644,7 @@ export default function ResumeBuilder() {
       <div className="container mx-auto">
         {currentStep === 'select' && renderSelectStep()}
         {currentStep === 'upload' && renderUploadStep()}
+        {currentStep === 'linkedin-url' && renderLinkedinUrlStep()}
         {currentStep === 'templates' && renderTemplatesStep()}
       </div>
     </div>
