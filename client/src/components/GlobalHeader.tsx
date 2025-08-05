@@ -13,8 +13,28 @@ function GlobalHeader() {
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
 
-  const handleLogout = () => {
-    window.location.href = "/api/auth/logout";
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        // Redirect to home page after successful logout
+        window.location.href = '/';
+      } else {
+        console.error('Logout failed');
+        // Fallback redirect to home page
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback redirect to home page
+      window.location.href = '/';
+    }
   };
 
   return (

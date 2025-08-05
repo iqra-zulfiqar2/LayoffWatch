@@ -137,7 +137,19 @@ export function setupPasswordAuth(app: Express) {
         return res.status(500).json({ error: 'Failed to logout' });
       }
       res.clearCookie('connect.sid');
-      res.json({ success: true });
+      res.json({ success: true, redirectTo: '/' });
+    });
+  });
+
+  // GET logout route for direct browser redirects
+  app.get('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.redirect('/?error=logout_failed');
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/');
     });
   });
 }

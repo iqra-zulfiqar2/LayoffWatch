@@ -52,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth middleware
-  await setupAuth(app); 
+  // await setupAuth(app); // Commented out - causing replitauth strategy errors 
   setupMagicAuth(app);
   setupPasswordAuth(app);
   setupGoogleAuth(app);
