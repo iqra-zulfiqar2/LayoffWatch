@@ -11,11 +11,12 @@ export function setupGoogleAuth(app: Express) {
   }
 
   // Configure Google OAuth strategy
-  // Use the actual current domain for the callback URL
-  const currentDomain = "68482c38-d023-4f10-a347-9fe6938380c4.worf.prod.repl.run";
-  const callbackURL = `https://${currentDomain}/api/auth/google/callback`;
+  // Use the environment domain or fall back to current domain
+  const domain = process.env.REPLIT_DOMAINS || "897be05a-eedd-41cb-a108-3708fd414388-00-3s5emoy4czxac.worf.replit.dev";
+  const callbackURL = `https://${domain}/api/auth/google/callback`;
   
   console.log("Google OAuth callback URL:", callbackURL);
+  console.log("Frontend URL:", `https://${domain}`);
 
   passport.use(
     new GoogleStrategy(
