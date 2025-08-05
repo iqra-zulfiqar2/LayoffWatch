@@ -10,13 +10,14 @@ export function setupGoogleAuth(app: Express) {
     return;
   }
 
-  // Configure Google OAuth strategy
-  // Use the environment domain or fall back to current domain
-  const domain = process.env.REPLIT_DOMAINS || "897be05a-eedd-41cb-a108-3708fd414388-00-3s5emoy4czxac.worf.replit.dev";
+  // Try using the environment domain which should be more reliable
+  const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || "897be05a-eedd-41cb-a108-3708fd414388-00-3s5emoy4czxac.worf.replit.dev";
   const callbackURL = `https://${domain}/api/auth/google/callback`;
   
   console.log("Google OAuth callback URL:", callbackURL);
-  console.log("Frontend URL:", `https://${domain}`);
+  console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+  console.log("Domain from env:", process.env.REPLIT_DOMAINS);
+  console.log("Using domain:", domain);
 
   passport.use(
     new GoogleStrategy(
@@ -83,8 +84,14 @@ export function setupGoogleAuth(app: Express) {
 
   // Google OAuth routes
   app.get("/api/auth/google", (req, res, next) => {
-    console.log("Google OAuth request from:", req.get('host'));
-    console.log("Request URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+    console.log("=== Google OAuth Debug ===");
+    console.log("Host:", req.get('host'));
+    console.log("Protocol:", req.protocol);
+    console.log("Original URL:", req.originalUrl);
+    console.log("Full URL:", req.protocol + '://' + req.get('host') + req.originalUrl);
+    console.log("Configured callback URL:", callbackURL);
+    console.log("========================");
+    
     passport.authenticate("google", {
       scope: ["profile", "email"],
     })(req, res, next);
