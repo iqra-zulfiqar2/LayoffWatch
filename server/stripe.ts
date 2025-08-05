@@ -45,6 +45,9 @@ export async function createSetupIntent(customerId: string): Promise<Stripe.Setu
     customer: customerId,
     usage: 'off_session',
     payment_method_types: ['card'],
+    automatic_payment_methods: {
+      enabled: true,
+    },
     metadata: {
       type: 'trial_setup',
     },

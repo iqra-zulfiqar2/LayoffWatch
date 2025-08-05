@@ -33,28 +33,55 @@ const CheckoutForm = ({ type }: { type: 'trial' | 'subscription' }) => {
     setIsLoading(true);
 
     try {
-      const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/dashboard?payment=success`,
-        },
-      });
+      if (type === 'trial') {
+        // For trial, we use confirmSetup to save the payment method
+        const { error } = await stripe.confirmSetup({
+          elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard?trial=started`,
+          },
+        });
 
-      if (error) {
-        toast({
-          title: "Payment Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error) {
+          toast({
+            title: "Setup Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Trial Started!",
+            description: "Your 7-day free trial has started. Payment method saved for future billing.",
+          });
+          // Redirect to dashboard after success
+          setTimeout(() => {
+            window.location.href = "/dashboard?trial=started";
+          }, 2000);
+        }
       } else {
-        toast({
-          title: "Payment Successful",
-          description: type === 'trial' 
-            ? "Your trial has started! Payment method saved for after trial."
-            : "Welcome to Layoff Proof Pro!",
+        // For direct subscription, use confirmPayment
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard?payment=success`,
+          },
         });
+
+        if (error) {
+          toast({
+            title: "Payment Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Payment Successful",
+            description: "Welcome to Layoff Proof Pro!",
+          });
+        }
       }
     } catch (error) {
+      console.error("Payment error:", error);
       toast({
         title: "Payment Error",
         description: "An unexpected error occurred. Please try again.",
@@ -67,7 +94,11 @@ const CheckoutForm = ({ type }: { type: 'trial' | 'subscription' }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement />
+      <PaymentElement 
+        options={{
+          layout: "tabs"
+        }}
+      />
       <Button 
         type="submit" 
         disabled={!stripe || isLoading}
@@ -82,10 +113,16 @@ const CheckoutForm = ({ type }: { type: 'trial' | 'subscription' }) => {
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            {type === 'trial' ? 'Start Free Trial' : 'Subscribe Now'}
+            {type === 'trial' ? 'Save Payment Method & Start Trial' : 'Subscribe Now'}
           </>
         )}
       </Button>
+      <p className="text-xs text-gray-500 text-center">
+        {type === 'trial' 
+          ? "No charge today. You'll be billed $19/month after your 7-day trial."
+          : "You'll be charged $19/month starting today."
+        }
+      </p>
     </form>
   );
 };
@@ -94,16 +131,18 @@ export default function Subscribe() {
   const [clientSecret, setClientSecret] = useState("");
   const [subscriptionType, setSubscriptionType] = useState<'trial' | 'subscription'>('trial');
   const [isLoading, setIsLoading] = useState(true);
+  const [stripeKey] = useState(stripePromise); // Prevent recreation
   const { toast } = useToast();
 
   useEffect(() => {
     // Start trial by default - creates setup intent to save payment method
-    const startTrial = async () => {
+    const initializePayment = async () => {
       try {
         const response = await apiRequest("POST", "/api/stripe/start-trial");
         const data = await response.json();
         
         if (data.clientSecret) {
+          console.log("Setup intent created:", data.clientSecret.substring(0, 20) + "...");
           setClientSecret(data.clientSecret);
           setSubscriptionType('trial');
         } else {
@@ -121,7 +160,7 @@ export default function Subscribe() {
       }
     };
 
-    startTrial();
+    initializePayment();
   }, [toast]);
 
   const switchToSubscription = async () => {
@@ -131,8 +170,9 @@ export default function Subscribe() {
       const data = await response.json();
       
       if (data.clientSecret) {
-        setClientSecret(data.clientSecret);
-        setSubscriptionType('subscription');
+        console.log("Payment intent created:", data.clientSecret.substring(0, 20) + "...");
+        // We need to reload the page to switch from SetupIntent to PaymentIntent
+        window.location.href = `/subscribe?type=subscription&client_secret=${encodeURIComponent(data.clientSecret)}`;
       }
     } catch (error) {
       console.error("Error creating payment intent:", error);
@@ -238,7 +278,21 @@ export default function Subscribe() {
               </div>
 
               {/* Stripe Payment Form */}
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <Elements 
+                stripe={stripeKey} 
+                options={{ 
+                  clientSecret,
+                  appearance: {
+                    theme: 'stripe',
+                    variables: {
+                      colorPrimary: '#2563eb',
+                      colorBackground: '#ffffff',
+                      colorText: '#1f2937',
+                      borderRadius: '8px',
+                    }
+                  }
+                }}
+              >
                 <CheckoutForm type={subscriptionType} />
               </Elements>
             </CardContent>
