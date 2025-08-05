@@ -356,7 +356,10 @@ export default function ResumeBuilder() {
   const aiGenerateMutation = useMutation({
     mutationFn: async (prompt: string) => {
       console.log("AI generate mutation starting with prompt:", prompt);
-      return await apiRequest('POST', '/api/generate-resume-ai', { prompt });
+      const response = await apiRequest('POST', '/api/generate-resume-ai', { prompt });
+      const data = await response.json();
+      console.log("Raw API response data:", data);
+      return data;
     },
     onSuccess: (data) => {
       console.log("AI generation successful:", data);

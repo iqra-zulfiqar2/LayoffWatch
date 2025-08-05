@@ -1910,12 +1910,19 @@ Return ONLY the JSON object, no additional text or formatting.`;
         parsedData = JSON.parse(jsonString);
         console.log("Parsed AI resume data:", parsedData);
         
+        // Validate that parsedData contains expected fields
+        if (!parsedData || typeof parsedData !== 'object' || !parsedData.name) {
+          console.error("Invalid parsed data structure:", parsedData);
+          return res.status(500).json({ error: "AI generated invalid data structure" });
+        }
+        
       } catch (parseError) {
         console.error("Error parsing AI response:", parseError);
         console.error("Raw response text:", response.content[0].text);
         return res.status(500).json({ error: "Failed to parse AI response" });
       }
 
+      console.log("Sending response with parsedData:", JSON.stringify(parsedData, null, 2));
       res.json({ parsedData });
       
     } catch (error) {
