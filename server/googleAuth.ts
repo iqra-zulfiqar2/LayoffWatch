@@ -11,9 +11,9 @@ export function setupGoogleAuth(app: Express) {
   }
 
   // Configure Google OAuth strategy
-  const callbackURL = process.env.REPLIT_DOMAINS 
-    ? `https://${process.env.REPLIT_DOMAINS}/api/auth/google/callback`
-    : "/api/auth/google/callback";
+  // Use the actual current domain for the callback URL
+  const currentDomain = "68482c38-d023-4f10-a347-9fe6938380c4.worf.prod.repl.run";
+  const callbackURL = `https://${currentDomain}/api/auth/google/callback`;
   
   console.log("Google OAuth callback URL:", callbackURL);
 
