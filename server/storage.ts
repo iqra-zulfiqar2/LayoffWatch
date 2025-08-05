@@ -72,6 +72,17 @@ export interface IStorage {
   useMagicLinkToken(token: string): Promise<void>;
   getUserByEmail(email: string): Promise<User | undefined>;
   
+  // Email/password authentication
+  createEmailUser(userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    authProvider: string;
+    isEmailVerified: boolean;
+  }): Promise<User>;
+  updateUserLastLogin(userId: string): Promise<void>;
+  
   // Admin operations
   getCompanyCount(): Promise<number>;
   getUserCount(): Promise<number>;
@@ -425,6 +436,40 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(eq(users.email, email.toLowerCase()));
     return user;
+  }
+
+  // Email/password authentication methods
+  async createEmailUser(userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    authProvider: string;
+    isEmailVerified: boolean;
+  }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        password: userData.password,
+        authProvider: userData.authProvider,
+        isEmailVerified: userData.isEmailVerified,
+        lastLoginAt: new Date(),
+      })
+      .returning();
+    return user;
+  }
+
+  async updateUserLastLogin(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 
   // Admin operations implementation

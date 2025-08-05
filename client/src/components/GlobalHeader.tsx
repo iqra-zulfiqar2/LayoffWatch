@@ -161,10 +161,10 @@ export default function GlobalHeader() {
               </Link>
             ) : (
               <>
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">
+                <Link href="/login" className="text-gray-700 hover:text-blue-600 font-medium">
                   Sign In
-                </a>
-                <Link href="/magic-login">
+                </Link>
+                <Link href="/signup">
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                     Get Started
                   </Button>

@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupMagicAuth, isMagicAuthenticated } from "./magicAuth";
+import { setupPasswordAuth, isAuthenticatedAny } from "./passwordAuth";
 // import { setupGoogleAuth } from "./googleAuth";
 // import { setupLinkedInAuth } from "./linkedinAuth";
 import { analyzeJobSecurityRisk } from "./anthropic";
@@ -44,14 +45,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app); 
   setupMagicAuth(app);
+  setupPasswordAuth(app);
   // setupGoogleAuth(app);  // Disabled until API keys are configured
   // setupLinkedInAuth(app);  // Disabled until API keys are configured
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticatedAny, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);

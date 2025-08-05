@@ -41,6 +41,8 @@ export const users = pgTable("users", {
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   subscriptionStatus: varchar("subscription_status").default("inactive"), // inactive, active, canceled, past_due
   subscriptionEndDate: timestamp("subscription_end_date"),
+  password: varchar("password"), // For email/password authentication
+  authProvider: varchar("auth_provider").default("replit"), // replit, email, google
   role: varchar("role").default("user"), // user, admin
   lastLoginAt: timestamp("last_login_at"),
   isEmailVerified: boolean("is_email_verified").default(false),
@@ -254,7 +256,22 @@ export const createMagicLinkSchema = createInsertSchema(magicLinkTokens).pick({
   email: true,
 });
 
+// Email/Password authentication schemas
+export const signupSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Valid email is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export type CreateMagicLinkRequest = z.infer<typeof createMagicLinkSchema>;
+export type SignupRequest = z.infer<typeof signupSchema>;
+export type LoginRequest = z.infer<typeof loginSchema>;
 export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type LayoffEvent = typeof layoffEvents.$inferSelect;
@@ -305,3 +322,19 @@ export interface ParsedResumeData {
   github: string;
   website: string;
 }
+
+// Authentication request types
+export const signupRequestSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const loginRequestSchema = z.object({
+  email: z.string().email("Valid email is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type SignupRequest = z.infer<typeof signupRequestSchema>;
+export type LoginRequest = z.infer<typeof loginRequestSchema>;
