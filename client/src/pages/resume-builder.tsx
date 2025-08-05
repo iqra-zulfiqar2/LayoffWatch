@@ -112,11 +112,15 @@ export default function ResumeBuilder() {
   const generateResumeMutation = useMutation({
     mutationFn: async (data: { templateId: string; resumeData: ParsedResumeData }) => {
       try {
+        console.log('generateResumeMutation starting with data:', data);
+        
         const response = await fetch('/api/generate-resume-pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
+        
+        console.log('API response status:', response.status);
         
         if (!response.ok) {
           const errorText = await response.text();
@@ -125,7 +129,7 @@ export default function ResumeBuilder() {
         }
         
         const htmlContent = await response.text();
-        console.log('Resume HTML generated successfully');
+        console.log('Resume HTML generated successfully, length:', htmlContent.length);
         return htmlContent;
       } catch (error) {
         console.error('Error in generateResumeMutation:', error);
@@ -238,12 +242,36 @@ export default function ResumeBuilder() {
   };
 
   const handleGenerateResume = () => {
-    if (extractedData && selectedTemplate) {
-      generateResumeMutation.mutate({
-        templateId: selectedTemplate,
-        resumeData: extractedData
+    console.log("Generate Resume button clicked");
+    console.log("extractedData:", extractedData);
+    console.log("selectedTemplate:", selectedTemplate);
+    console.log("generateResumeMutation.isPending:", generateResumeMutation.isPending);
+    
+    if (!extractedData) {
+      console.error("No extracted data available");
+      toast({
+        title: "No Data Available",
+        description: "Please upload a resume or import from LinkedIn first.",
+        variant: "destructive",
       });
+      return;
     }
+    
+    if (!selectedTemplate) {
+      console.error("No template selected");
+      toast({
+        title: "No Template Selected",
+        description: "Please select a template first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("Starting resume generation...");
+    generateResumeMutation.mutate({
+      templateId: selectedTemplate,
+      resumeData: extractedData
+    });
   };
 
   const renderSelectStep = () => (
