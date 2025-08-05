@@ -92,7 +92,7 @@ export default function ResumeBuilder() {
     mutationFn: async (profileUrl: string) => {
       return apiRequest('POST', '/api/import-linkedin-resume', { profileUrl });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setExtractedData(data.resumeData);
       setCurrentStep('templates');
       toast({
