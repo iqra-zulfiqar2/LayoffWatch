@@ -51,8 +51,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth middleware
-  // await setupAuth(app); // Commented out - causing replitauth strategy errors 
+  // Session middleware (from replitAuth but without the problematic strategy)
+  const session = await import('express-session');
+  const connectPg = await import('connect-pg-simple');
+  
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg.default(session.default);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+  
+  app.set("trust proxy", 1);
+  app.use(session.default({
+    secret: process.env.SESSION_SECRET || 'layoff-proof-dev-secret-key-2024', // Fallback for development
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to false for development (HTTP)
+      maxAge: sessionTtl,
+    },
+  }));
+
+  // Auth middleware  
   setupMagicAuth(app);
   setupPasswordAuth(app);
   setupGoogleAuth(app);

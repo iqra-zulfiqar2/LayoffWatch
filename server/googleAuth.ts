@@ -126,6 +126,14 @@ export function setupGoogleAuth(app: Express) {
           return res.redirect("/login?error=oauth_failed");
         }
 
+        console.log("Google OAuth user received:", req.user);
+
+        // Check if session exists
+        if (!req.session) {
+          console.error("No session available in Google OAuth callback");
+          return res.redirect("/login?error=session_failed");
+        }
+
         // Create session like in password auth
         req.session.user = {
           id: req.user.id,
@@ -135,10 +143,16 @@ export function setupGoogleAuth(app: Express) {
           authProvider: 'google'
         };
 
+        // Save session with proper error handling
         await new Promise<void>((resolve, reject) => {
           req.session.save((err: any) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error("Session save error:", err);
+              reject(err);
+            } else {
+              console.log("Session saved successfully");
+              resolve();
+            }
           });
         });
 
