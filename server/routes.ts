@@ -249,17 +249,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/stripe/start-trial', isAuthenticatedAny, async (req: any, res) => {
     try {
       const user = req.user;
+      console.log("Starting trial for user:", user.email);
       
       // Get or create Stripe customer
       const stripeCustomerId = await getOrCreateStripeCustomer(user);
+      console.log("Stripe customer ID:", stripeCustomerId);
       
       // Update user with Stripe customer ID if not exists
       if (!user.stripeCustomerId) {
         await storage.updateUser(user.id, { stripeCustomerId });
+        console.log("Updated user with Stripe customer ID");
       }
       
       // Create setup intent for saving payment method
+      console.log("Creating setup intent...");
       const setupIntent = await createSetupIntent(stripeCustomerId);
+      console.log("Setup intent created successfully:", setupIntent.id);
       
       res.json({
         clientSecret: setupIntent.client_secret,
@@ -268,7 +273,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error starting trial:", error);
-      res.status(500).json({ message: "Failed to start trial" });
+      console.error("Error details:", error.message);
+      res.status(500).json({ 
+        message: "Failed to start trial", 
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      });
     }
   });
 
