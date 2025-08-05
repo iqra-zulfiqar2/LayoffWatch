@@ -90,17 +90,34 @@ export default function ResumeBuilder() {
 
   const linkedinImportMutation = useMutation({
     mutationFn: async (profileUrl: string) => {
-      return apiRequest('POST', '/api/import-linkedin-resume', { profileUrl });
+      console.log("Starting LinkedIn import for:", profileUrl);
+      const response = await apiRequest('POST', '/api/import-linkedin-resume', { profileUrl });
+      const result = await response.json();
+      console.log("LinkedIn import API result:", result);
+      return result;
     },
     onSuccess: (data: any) => {
-      setExtractedData(data.resumeData);
-      setCurrentStep('templates');
-      toast({
-        title: "LinkedIn Profile Imported Successfully",
-        description: "Your profile information has been extracted and is ready for template selection.",
-      });
+      console.log("LinkedIn import onSuccess called with:", data);
+      console.log("Resume data to set:", data.resumeData);
+      
+      if (data.resumeData) {
+        setExtractedData(data.resumeData);
+        setCurrentStep('templates');
+        toast({
+          title: "LinkedIn Profile Imported Successfully",
+          description: "Your profile information has been extracted and is ready for template selection.",
+        });
+      } else {
+        console.error("No resumeData in response:", data);
+        toast({
+          title: "Import Failed",
+          description: "No profile data was extracted. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error: any) => {
+      console.error("LinkedIn import error:", error);
       toast({
         title: "Import Failed",
         description: error.message || "Failed to import LinkedIn profile. Please check the URL and try again.",
