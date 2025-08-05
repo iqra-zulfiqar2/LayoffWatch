@@ -2,91 +2,46 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star } from "lucide-react";
+import { Check, Star, Info } from "lucide-react";
 import GlobalHeader from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    description: "Perfect for getting started with basic career tools",
-    features: [
-      "Basic Resume Builder",
-      "3 Resume downloads per month",
-      "Basic Cover Letter Generator",
-      "Access to Layoff Tracker",
-      "Email support"
-    ],
-    limitations: [
-      "Limited to 3 resume templates",
-      "Basic customization options",
-      "No premium features"
-    ],
-    buttonText: "Get Started",
-    popular: false,
-    color: "border-gray-200"
-  },
-  {
-    name: "Pro",
-    price: "$19",
-    period: "per month",
-    description: "Advanced tools for serious job seekers and career changers",
-    features: [
-      "All Free features",
-      "Unlimited resume downloads",
-      "All 4 premium resume templates",
-      "AI-powered Interview Preparation",
-      "LinkedIn Profile Optimizer",
-      "Advanced Cover Letter customization",
-      "Priority email support",
-      "Resume analytics and insights"
-    ],
-    limitations: [],
-    buttonText: "Start Pro Trial",
-    popular: true,
-    color: "border-blue-500"
-  },
-  {
-    name: "Premium",
-    price: "$39",
-    period: "per month",
-    description: "Complete career advancement suite for professionals",
-    features: [
-      "All Pro features",
-      "Recruiter Outreach Script Generator",
-      "Advanced company layoff tracking",
-      "Custom company monitoring (up to 50)",
-      "1-on-1 career coaching session monthly",
-      "Resume review by career experts",
-      "Phone support",
-      "Early access to new features",
-      "Custom branding options"
-    ],
-    limitations: [],
-    buttonText: "Go Premium",
-    popular: false,
-    color: "border-purple-500"
-  }
-];
+const plan = {
+  name: "Layoff Proof Pro",
+  price: "$19",
+  period: "per month",
+  description: "Complete career resilience platform with 7-day free trial",
+  trialDays: 7,
+  features: [
+    "AI-powered Resume Builder with 4 premium templates",
+    "Unlimited resume downloads and exports",
+    "Smart Cover Letter Generator",
+    "AI Interview Question Generator & Scorer",
+    "LinkedIn Profile Optimizer",
+    "Recruiter Outreach Script Generator",
+    "Real-time Layoff Tracker with alerts",
+    "Advanced company monitoring (up to 50)",
+    "Resume analytics and insights",
+    "Priority email support"
+  ],
+  trialFeatures: [
+    "Basic Resume Builder (1 template)",
+    "3 resume downloads during trial",
+    "Basic Cover Letter Generator",
+    "Access to Layoff Tracker",
+    "Limited Interview Preparation"
+  ],
+  buttonText: "Start 7-Day Free Trial",
+  popular: true,
+  color: "border-blue-500"
+};
 
 export default function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
-
-  const getPrice = (basePrice: string) => {
-    if (basePrice === "$0") return basePrice;
-    if (billingCycle === "yearly") {
-      const monthlyPrice = parseInt(basePrice.replace("$", ""));
-      const yearlyPrice = Math.floor(monthlyPrice * 12 * 0.8); // 20% discount
-      return `$${yearlyPrice}`;
-    }
-    return basePrice;
-  };
-
-  const getPeriod = () => {
-    if (billingCycle === "yearly") return "per year";
-    return "per month";
+  const [showTrialFeatures, setShowTrialFeatures] = useState(false);
+  
+  const handleStartTrial = () => {
+    // Handle trial signup logic here
+    console.log("Starting free trial");
   };
 
   return (
@@ -97,98 +52,84 @@ export default function Pricing() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            Choose Your Career Plan
+            Start Your Career Journey
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
             Unlock your career potential with our comprehensive suite of AI-powered tools. 
-            From resumes to interviews, we've got everything you need to land your dream job.
+            Start with a 7-day free trial, then continue for just $19/month.
           </p>
-          
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center space-x-4 mb-8">
-            <span className={`text-sm ${billingCycle === "monthly" ? "text-gray-900 dark:text-white font-semibold" : "text-gray-500"}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                billingCycle === "yearly" ? "bg-blue-600" : "bg-gray-200"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  billingCycle === "yearly" ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
-            <span className={`text-sm ${billingCycle === "yearly" ? "text-gray-900 dark:text-white font-semibold" : "text-gray-500"}`}>
-              Yearly
-            </span>
-            {billingCycle === "yearly" && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Save 20%
-              </Badge>
-            )}
-          </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {plans.map((plan, index) => (
-            <Card key={plan.name} className={`relative ${plan.color} ${plan.popular ? 'ring-2 ring-blue-500 shadow-xl scale-105' : 'shadow-lg hover:shadow-xl'} transition-all duration-300`}>
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-blue-600 text-white px-4 py-1 flex items-center space-x-1">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>Most Popular</span>
-                  </Badge>
-                </div>
-              )}
-              
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {plan.name}
-                </CardTitle>
-                <div className="flex items-baseline justify-center space-x-2">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                    {getPrice(plan.price)}
-                  </span>
-                  {plan.price !== "$0" && (
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {billingCycle === "yearly" ? getPeriod() : plan.period}
-                    </span>
-                  )}
-                </div>
-                <CardDescription className="text-gray-600 dark:text-gray-300 mt-4">
-                  {plan.description}
-                </CardDescription>
-              </CardHeader>
+        {/* Single Pricing Card */}
+        <div className="max-w-md mx-auto mb-16">
+          <Card className={`relative ${plan.color} ring-2 ring-blue-500 shadow-xl transform transition-all duration-300 hover:scale-105`}>
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <Badge className="bg-blue-600 text-white px-4 py-1 flex items-center space-x-1">
+                <Star className="w-4 h-4 fill-current" />
+                <span>7-Day Free Trial</span>
+              </Badge>
+            </div>
+            
+            <CardHeader className="text-center pb-8">
+              <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
+                {plan.name}
+              </CardTitle>
+              <div className="flex items-baseline justify-center space-x-2">
+                <span className="text-5xl font-bold text-gray-900 dark:text-white">
+                  {plan.price}
+                </span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  {plan.period}
+                </span>
+              </div>
+              <CardDescription className="text-gray-600 dark:text-gray-300 mt-4 text-lg">
+                {plan.description}
+              </CardDescription>
+            </CardHeader>
 
-              <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Trial Features Toggle */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                    {showTrialFeatures ? "Trial Features (7 days)" : "Full Features (after trial)"}
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTrialFeatures(!showTrialFeatures)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Info className="w-4 h-4 mr-1" />
+                    {showTrialFeatures ? "Show Full" : "Show Trial"}
+                  </Button>
+                </div>
+                
                 <div className="space-y-3">
-                  {plan.features.map((feature, idx) => (
+                  {(showTrialFeatures ? plan.trialFeatures : plan.features).map((feature, idx) => (
                     <div key={idx} className="flex items-center space-x-3">
                       <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">{feature}</span>
                     </div>
                   ))}
                 </div>
-              </CardContent>
+              </div>
+            </CardContent>
 
-              <CardFooter className="pt-6">
-                <Button 
-                  className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-900 hover:bg-gray-800'} text-white`}
-                  size="lg"
-                >
-                  {plan.buttonText}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+            <CardFooter className="pt-6">
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg py-3"
+                size="lg"
+                onClick={handleStartTrial}
+              >
+                {plan.buttonText}
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
 
-        {/* Features Comparison */}
-        <div className="mt-20">
+        {/* Features Showcase */}
+        <div className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
             Everything You Need to Succeed
           </h2>
@@ -237,42 +178,51 @@ export default function Pricing() {
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-20">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
             Frequently Asked Questions
           </h2>
           
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Can I switch plans anytime?
+                How does the 7-day free trial work?
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences.
+                Start your free trial with no credit card required. You'll have access to basic features for 7 days. After the trial, continue with full access for $19/month, or your account will be paused until you choose to subscribe.
               </p>
             </div>
             
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Is there a free trial for paid plans?
+                Can I cancel anytime?
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Yes, we offer a 14-day free trial for both Pro and Premium plans. No credit card required to start your trial.
+                Yes, you can cancel your subscription at any time. Your access will continue until the end of your current billing period, and no future charges will be made.
               </p>
             </div>
             
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                What happens to my data if I cancel?
+                What's included in the subscription?
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Your data remains accessible for 30 days after cancellation. You can export your resumes and other documents during this period.
+                Full access to all our AI-powered career tools: Resume Builder with 4 templates, unlimited downloads, Cover Letter Generator, Interview Prep, LinkedIn Optimizer, Recruiter Outreach scripts, and real-time Layoff Tracker with company monitoring.
+              </p>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Do you offer refunds?
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                We offer a 30-day money-back guarantee. If you're not satisfied with Layoff Proof within the first 30 days of your paid subscription, we'll provide a full refund.
               </p>
             </div>
           </div>
         </div>
       </div>
-
+      
       <GlobalFooter />
     </div>
   );

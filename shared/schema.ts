@@ -36,11 +36,13 @@ export const users = pgTable("users", {
   jobTitle: varchar("job_title"),
   emailNotifications: boolean("email_notifications").default(true),
   smsNotifications: boolean("sms_notifications").default(false),
-  subscriptionPlan: varchar("subscription_plan").default("free"), // free, pro, premium
+  subscriptionPlan: varchar("subscription_plan").default("trial"), // trial, pro
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
-  subscriptionStatus: varchar("subscription_status").default("inactive"), // inactive, active, canceled, past_due
+  subscriptionStatus: varchar("subscription_status").default("trial"), // trial, active, canceled, past_due
   subscriptionEndDate: timestamp("subscription_end_date"),
+  trialStartDate: timestamp("trial_start_date"),
+  trialEndDate: timestamp("trial_end_date"),
   password: varchar("password"), // For email/password authentication
   authProvider: varchar("auth_provider").default("replit"), // replit, email, google
   role: varchar("role").default("user"), // user, admin
