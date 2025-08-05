@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import type { Express } from "express";
 import { storage } from "./storage";
+import session from "express-session";
 
 export function setupGoogleAuth(app: Express) {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -13,6 +14,8 @@ export function setupGoogleAuth(app: Express) {
   const callbackURL = process.env.REPLIT_DOMAINS 
     ? `https://${process.env.REPLIT_DOMAINS}/api/auth/google/callback`
     : "/api/auth/google/callback";
+  
+  console.log("Google OAuth callback URL:", callbackURL);
 
   passport.use(
     new GoogleStrategy(
@@ -87,12 +90,36 @@ export function setupGoogleAuth(app: Express) {
 
   app.get(
     "/api/auth/google/callback",
-    passport.authenticate("google", {
-      failureRedirect: "/login?error=oauth_failed",
-    }),
-    (req, res) => {
-      // Successful authentication
-      res.redirect("/");
+    passport.authenticate("google", { session: false }),
+    async (req: any, res) => {
+      try {
+        if (!req.user) {
+          console.error("No user in Google OAuth callback");
+          return res.redirect("/login?error=oauth_failed");
+        }
+
+        // Create session like in password auth
+        req.session.user = {
+          id: req.user.id,
+          email: req.user.email,
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          authProvider: 'google'
+        };
+
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err: any) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        console.log("Google OAuth successful, redirecting to home");
+        res.redirect("/");
+      } catch (error) {
+        console.error("Error in Google OAuth callback:", error);
+        res.redirect("/login?error=oauth_failed");
+      }
     }
   );
 }
