@@ -313,17 +313,32 @@ export default function ResumeBuilder() {
 
   const handleManualDataSave = () => {
     // Validate required fields
-    if (!manualData.name.trim() || !manualData.email.trim() || !manualData.profession.trim()) {
+    const fullName = manualData.name.trim();
+    const email = manualData.email.trim();
+    const profession = manualData.profession.trim();
+    
+    console.log("Validation check:", { fullName, email, profession });
+    
+    if (!fullName || !email || !profession) {
       toast({
         title: "Missing Required Fields",
-        description: "Please fill in your name, email, and profession before continuing.",
+        description: `Please fill in the following required fields: ${[
+          !fullName ? 'Full Name' : '',
+          !email ? 'Email' : '',
+          !profession ? 'Professional Title' : ''
+        ].filter(Boolean).join(', ')}`,
         variant: "destructive",
       });
       return;
     }
 
     // Set the manual data as extracted data and proceed to templates
-    setExtractedData(manualData);
+    setExtractedData({
+      ...manualData,
+      name: fullName,
+      email: email,
+      profession: profession
+    });
     setCurrentStep('templates');
     toast({
       title: "Information Saved",
@@ -564,7 +579,7 @@ export default function ResumeBuilder() {
                       company: '',
                       duration: '',
                       description: '',
-                      responsibilities: ['']
+                      responsibilities: []
                     };
                     setManualData({...manualData, experience: [...manualData.experience, newExp]});
                   }}

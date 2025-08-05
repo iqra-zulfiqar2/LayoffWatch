@@ -278,6 +278,7 @@ export interface ParsedResumeData {
     title: string;
     company: string;
     duration: string;
+    description: string;
     responsibilities: string[];
   }>;
   skills: string[];
