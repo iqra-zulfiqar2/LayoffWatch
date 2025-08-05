@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Upload, FileText, Download, ArrowLeft, ArrowRight, Linkedin, ExternalLink } from 'lucide-react';
+import { Upload, FileText, Download, ArrowLeft, ArrowRight, Linkedin, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -44,13 +46,31 @@ const resumeTemplates: ResumeTemplate[] = [
 ];
 
 export default function ResumeBuilder() {
-  const [currentStep, setCurrentStep] = useState<'select' | 'upload' | 'linkedin-url' | 'templates' | 'preview'>('select');
+  const [currentStep, setCurrentStep] = useState<'select' | 'upload' | 'linkedin-url' | 'manual-form' | 'templates' | 'preview'>('select');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<ParsedResumeData | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState<string>('');
-  const [buildMethod, setBuildMethod] = useState<'upload' | 'linkedin' | null>(null);
+  const [buildMethod, setBuildMethod] = useState<'upload' | 'linkedin' | 'manual' | null>(null);
+  const [manualData, setManualData] = useState<ParsedResumeData>({
+    name: '',
+    email: '',
+    phone: '',
+    profession: '',
+    summary: '',
+    experience: [],
+    skills: [],
+    education: [],
+    certifications: [],
+    achievements: [],
+    projects: [],
+    languages: ['English'],
+    location: '',
+    linkedin: '',
+    github: '',
+    website: ''
+  });
   const { toast } = useToast();
 
   const uploadMutation = useMutation({
@@ -291,6 +311,450 @@ export default function ResumeBuilder() {
     });
   };
 
+  const handleManualDataSave = () => {
+    // Validate required fields
+    if (!manualData.name.trim() || !manualData.email.trim() || !manualData.profession.trim()) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please fill in your name, email, and profession before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set the manual data as extracted data and proceed to templates
+    setExtractedData(manualData);
+    setCurrentStep('templates');
+    toast({
+      title: "Information Saved",
+      description: "Your resume information has been saved. Choose a template below.",
+    });
+  };
+
+  const renderManualFormStep = () => (
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="text-center space-y-4">
+        <div className="bg-blue-50 dark:bg-blue-950 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+          <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          AI-Powered Resume Builder
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Create an ATS-friendly, professional resume that stands out to recruiters and hiring managers
+        </p>
+      </div>
+
+      {/* Progress Steps */}
+      <div className="flex items-center justify-center space-x-8 mb-8">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+          <span className="text-sm font-medium text-blue-600">Choose Option</span>
+        </div>
+        <div className="w-16 h-px bg-gray-300"></div>
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+          <span className="text-sm font-medium text-blue-600">Fill Details</span>
+        </div>
+        <div className="w-16 h-px bg-gray-300"></div>
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+          <span className="text-sm font-medium text-gray-600">Select Template</span>
+        </div>
+        <div className="w-16 h-px bg-gray-300"></div>
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold">4</div>
+          <span className="text-sm font-medium text-gray-600">Preview & Download</span>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="p-8">
+          <Tabs defaultValue="personal" className="w-full">
+            <TabsList className="grid w-full grid-cols-9 mb-8">
+              <TabsTrigger value="personal" className="text-xs">Personal Info</TabsTrigger>
+              <TabsTrigger value="summary" className="text-xs">Summary</TabsTrigger>
+              <TabsTrigger value="experience" className="text-xs">Experience</TabsTrigger>
+              <TabsTrigger value="education" className="text-xs">Education</TabsTrigger>
+              <TabsTrigger value="skills" className="text-xs">Skills</TabsTrigger>
+              <TabsTrigger value="projects" className="text-xs">Projects</TabsTrigger>
+              <TabsTrigger value="certifications" className="text-xs">Certifications</TabsTrigger>
+              <TabsTrigger value="awards" className="text-xs">Awards</TabsTrigger>
+              <TabsTrigger value="publications" className="text-xs">Publications</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="personal" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={manualData.name.split(' ')[0] || ''}
+                    onChange={(e) => {
+                      const lastName = manualData.name.split(' ').slice(1).join(' ');
+                      setManualData({...manualData, name: `${e.target.value} ${lastName}`.trim()});
+                    }}
+                    placeholder="John"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={manualData.name.split(' ').slice(1).join(' ') || ''}
+                    onChange={(e) => {
+                      const firstName = manualData.name.split(' ')[0] || '';
+                      setManualData({...manualData, name: `${firstName} ${e.target.value}`.trim()});
+                    }}
+                    placeholder="Doe"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={manualData.email}
+                    onChange={(e) => setManualData({...manualData, email: e.target.value})}
+                    placeholder="john.doe@email.com"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    value={manualData.phone}
+                    onChange={(e) => setManualData({...manualData, phone: e.target.value})}
+                    placeholder="+1 (555) 123-4567"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="address">Street Address *</Label>
+                <Input
+                  id="address"
+                  value={manualData.location}
+                  onChange={(e) => setManualData({...manualData, location: e.target.value})}
+                  placeholder="123 Main Street"
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    placeholder="New York"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state">State *</Label>
+                  <Input
+                    id="state"
+                    placeholder="NY"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zipCode">ZIP Code *</Label>
+                  <Input
+                    id="zipCode"
+                    placeholder="10001"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Professional Links</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
+                    <Input
+                      id="linkedinProfile"
+                      value={manualData.linkedin}
+                      onChange={(e) => setManualData({...manualData, linkedin: e.target.value})}
+                      placeholder="https://linkedin.com/in/johndoe"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="githubProfile">GitHub Profile</Label>
+                    <Input
+                      id="githubProfile"
+                      value={manualData.github}
+                      onChange={(e) => setManualData({...manualData, github: e.target.value})}
+                      placeholder="https://github.com/johndoe"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="personalWebsite">Personal Website</Label>
+                    <Input
+                      id="personalWebsite"
+                      value={manualData.website}
+                      onChange={(e) => setManualData({...manualData, website: e.target.value})}
+                      placeholder="https://johndoe.com"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="portfolio">Portfolio</Label>
+                    <Input
+                      id="portfolio"
+                      placeholder="https://portfolio.johndoe.com"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="summary" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Professional Summary *</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Write a compelling summary of your professional background
+              </p>
+              
+              <div>
+                <Label htmlFor="profession">Professional Title *</Label>
+                <Input
+                  id="profession"
+                  value={manualData.profession}
+                  onChange={(e) => setManualData({...manualData, profession: e.target.value})}
+                  placeholder="e.g., Software Engineer, Marketing Manager"
+                  className="mt-1 mb-4"
+                />
+              </div>
+
+              <div>
+                <Textarea
+                  value={manualData.summary}
+                  onChange={(e) => setManualData({...manualData, summary: e.target.value})}
+                  placeholder="Experienced software engineer with 5+ years developing scalable web applications. Proven track record of leading cross-functional teams and delivering high-quality solutions that drive business growth..."
+                  className="min-h-[120px]"
+                />
+              </div>
+            </TabsContent>
+
+            {/* Add other tabs as needed */}
+            <TabsContent value="experience" className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Work Experience</h3>
+                <Button
+                  onClick={() => {
+                    const newExp = {
+                      title: '',
+                      company: '',
+                      duration: '',
+                      description: '',
+                      responsibilities: ['']
+                    };
+                    setManualData({...manualData, experience: [...manualData.experience, newExp]});
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Experience
+                </Button>
+              </div>
+
+              {manualData.experience.map((exp, index) => (
+                <Card key={index} className="p-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <Label>Job Title</Label>
+                      <Input
+                        value={exp.title}
+                        onChange={(e) => {
+                          const newExp = [...manualData.experience];
+                          newExp[index] = {...exp, title: e.target.value};
+                          setManualData({...manualData, experience: newExp});
+                        }}
+                        placeholder="Software Engineer"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Company</Label>
+                      <Input
+                        value={exp.company}
+                        onChange={(e) => {
+                          const newExp = [...manualData.experience];
+                          newExp[index] = {...exp, company: e.target.value};
+                          setManualData({...manualData, experience: newExp});
+                        }}
+                        placeholder="Company Name"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <Label>Duration</Label>
+                    <Input
+                      value={exp.duration}
+                      onChange={(e) => {
+                        const newExp = [...manualData.experience];
+                        newExp[index] = {...exp, duration: e.target.value};
+                        setManualData({...manualData, experience: newExp});
+                      }}
+                      placeholder="Jan 2020 - Present"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={exp.description}
+                      onChange={(e) => {
+                        const newExp = [...manualData.experience];
+                        newExp[index] = {...exp, description: e.target.value};
+                        setManualData({...manualData, experience: newExp});
+                      }}
+                      placeholder="Brief description of your role and responsibilities"
+                      className="mt-1"
+                    />
+                  </div>
+                  {manualData.experience.length > 1 && (
+                    <Button
+                      onClick={() => {
+                        const newExp = manualData.experience.filter((_, i) => i !== index);
+                        setManualData({...manualData, experience: newExp});
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  )}
+                </Card>
+              ))}
+
+              {manualData.experience.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No work experience added yet. Click "Add Experience" to get started.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Skills Tab */}
+            <TabsContent value="skills" className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Skills</h3>
+                <Button
+                  onClick={() => {
+                    setManualData({...manualData, skills: [...manualData.skills, '']});
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Skill
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {manualData.skills.map((skill, index) => (
+                  <div key={index} className="flex space-x-2">
+                    <Input
+                      value={skill}
+                      onChange={(e) => {
+                        const newSkills = [...manualData.skills];
+                        newSkills[index] = e.target.value;
+                        setManualData({...manualData, skills: newSkills});
+                      }}
+                      placeholder="e.g., JavaScript, Project Management"
+                    />
+                    <Button
+                      onClick={() => {
+                        const newSkills = manualData.skills.filter((_, i) => i !== index);
+                        setManualData({...manualData, skills: newSkills});
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="px-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              {manualData.skills.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No skills added yet. Click "Add Skill" to get started.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Add placeholder tabs for other sections */}
+            <TabsContent value="education" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Education (Coming Soon)</h3>
+              <p className="text-gray-600 dark:text-gray-400">Education section will be available in the next update.</p>
+            </TabsContent>
+
+            <TabsContent value="projects" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Projects (Coming Soon)</h3>
+              <p className="text-gray-600 dark:text-gray-400">Projects section will be available in the next update.</p>
+            </TabsContent>
+
+            <TabsContent value="certifications" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Certifications (Coming Soon)</h3>
+              <p className="text-gray-600 dark:text-gray-400">Certifications section will be available in the next update.</p>
+            </TabsContent>
+
+            <TabsContent value="awards" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Awards (Coming Soon)</h3>
+              <p className="text-gray-600 dark:text-gray-400">Awards section will be available in the next update.</p>
+            </TabsContent>
+
+            <TabsContent value="publications" className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Publications (Coming Soon)</h3>
+              <p className="text-gray-600 dark:text-gray-400">Publications section will be available in the next update.</p>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-between pt-8 border-t">
+            <Button
+              onClick={() => setCurrentStep('select')}
+              variant="outline"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
+            <Button
+              onClick={handleManualDataSave}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+            >
+              Save & Continue
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   const renderSelectStep = () => (
     <div className="max-w-4xl mx-auto text-center space-y-8">
       <div className="bg-blue-50 dark:bg-blue-950 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
@@ -306,7 +770,7 @@ export default function ResumeBuilder() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         {/* Upload Resume Option */}
         <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer group"
               onClick={() => {
@@ -348,6 +812,28 @@ export default function ResumeBuilder() {
             <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200">
               Quick & Easy
             </Badge>
+          </CardContent>
+        </Card>
+
+        {/* Choose A Blank Template Option */}
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer group"
+              onClick={() => {
+                setBuildMethod('manual');
+                setCurrentStep('manual-form');
+              }}>
+          <CardContent className="p-8 text-center">
+            <div className="bg-green-50 dark:bg-green-950 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4 group-hover:bg-green-100 dark:group-hover:bg-green-900 transition-colors">
+              <FileText className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Choose A Blank Template
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Start from scratch with a clean template and fill in your details manually
+            </p>
+            <Button className="mt-2 bg-blue-600 hover:bg-blue-700 text-white">
+              Start Building
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -668,10 +1154,19 @@ export default function ResumeBuilder() {
       <div className="flex justify-between mt-8">
         <Button 
           variant="outline" 
-          onClick={() => setCurrentStep(buildMethod === 'linkedin' ? 'linkedin-url' : 'upload')}
+          onClick={() => {
+            if (buildMethod === 'linkedin') {
+              setCurrentStep('linkedin-url');
+            } else if (buildMethod === 'manual') {
+              setCurrentStep('manual-form');
+            } else {
+              setCurrentStep('upload');
+            }
+          }}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {buildMethod === 'linkedin' ? 'Back to LinkedIn' : 'Back to Upload'}
+          {buildMethod === 'linkedin' ? 'Back to LinkedIn' : 
+           buildMethod === 'manual' ? 'Back to Form' : 'Back to Upload'}
         </Button>
         <Button 
           onClick={handleGenerateResume}
@@ -690,6 +1185,7 @@ export default function ResumeBuilder() {
         {currentStep === 'select' && renderSelectStep()}
         {currentStep === 'upload' && renderUploadStep()}
         {currentStep === 'linkedin-url' && renderLinkedinUrlStep()}
+        {currentStep === 'manual-form' && renderManualFormStep()}
         {currentStep === 'templates' && renderTemplatesStep()}
       </div>
     </div>
