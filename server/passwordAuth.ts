@@ -115,6 +115,7 @@ export function setupPasswordAuth(app: Express) {
 
       res.json({
         success: true,
+        redirectTo: '/pricing',
         user: {
           id: user.id,
           email: user.email,

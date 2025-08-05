@@ -10,7 +10,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Profile from "@/pages/profile";
 import Analytics from "@/pages/analytics";
-import Pricing from "@/pages/pricing";
+import PricingNew from "@/pages/Pricing";
 import Subscription from "@/pages/subscription";
 import AdminDashboard from "@/pages/admin";
 import EnhancedHomepage from "@/pages/enhanced-homepage";
@@ -33,7 +33,7 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/pricing" component={Pricing} />
+      <Route path="/pricing" component={PricingNew} />
       <Route path="/signup" component={Signup} />
       <Route path="/login" component={Login} />
       <Route path="/auth" component={AuthEnhanced} />

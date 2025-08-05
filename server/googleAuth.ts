@@ -114,8 +114,8 @@ export function setupGoogleAuth(app: Express) {
           });
         });
 
-        console.log("Google OAuth successful, redirecting to home");
-        res.redirect("/");
+        console.log("Google OAuth successful, redirecting to pricing");
+        res.redirect("/pricing");
       } catch (error) {
         console.error("Error in Google OAuth callback:", error);
         res.redirect("/login?error=oauth_failed");
