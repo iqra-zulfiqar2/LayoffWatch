@@ -287,9 +287,15 @@ export default function ResumeBuilder() {
     
     if (!extractedData) {
       console.error("No extracted data available");
+      const description = buildMethod === 'ai' 
+        ? "Please generate your resume using AI first."
+        : buildMethod === 'manual'
+        ? "Please fill in your resume information first."
+        : "Please upload a resume or import from LinkedIn first.";
+      
       toast({
         title: "No Data Available",
-        description: "Please upload a resume or import from LinkedIn first.",
+        description,
         variant: "destructive",
       });
       return;
@@ -354,12 +360,26 @@ export default function ResumeBuilder() {
     },
     onSuccess: (data) => {
       console.log("AI generation successful:", data);
-      setExtractedData(data.parsedData);
-      setCurrentStep('templates');
-      toast({
-        title: "Resume Generated",
-        description: "Your resume has been generated from your description. Choose a template below.",
-      });
+      console.log("Type of data:", typeof data);
+      console.log("Data keys:", Object.keys(data || {}));
+      console.log("parsedData:", data?.parsedData);
+      console.log("Type of parsedData:", typeof data?.parsedData);
+      
+      if (data && data.parsedData && typeof data.parsedData === 'object' && Object.keys(data.parsedData).length > 0) {
+        setExtractedData(data.parsedData);
+        setCurrentStep('templates');
+        toast({
+          title: "Resume Generated",
+          description: "Your resume has been generated from your description. Choose a template below.",
+        });
+      } else {
+        console.error("Invalid AI response data:", data);
+        toast({
+          title: "Generation Failed", 
+          description: "AI generated invalid response. Please try again with a different description.",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error) => {
       console.error("AI generation error:", error);

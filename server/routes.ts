@@ -1890,15 +1890,29 @@ Return ONLY the JSON object, no additional text or formatting.`;
         const responseText = response.content[0].text.trim();
         console.log("AI response text:", responseText);
         
-        // Extract JSON from response (in case there's extra text)
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        const jsonString = jsonMatch ? jsonMatch[0] : responseText;
+        // Extract JSON from response - handle markdown code blocks and extra text
+        let jsonString = responseText;
         
+        // Remove markdown code blocks if present
+        if (responseText.includes('```json')) {
+          const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+          jsonString = jsonMatch ? jsonMatch[1].trim() : responseText;
+        } else if (responseText.includes('```')) {
+          const jsonMatch = responseText.match(/```\s*([\s\S]*?)\s*```/);
+          jsonString = jsonMatch ? jsonMatch[1].trim() : responseText;
+        } else {
+          // Extract JSON object if no code blocks
+          const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+          jsonString = jsonMatch ? jsonMatch[0] : responseText;
+        }
+        
+        console.log("Extracted JSON string:", jsonString);
         parsedData = JSON.parse(jsonString);
         console.log("Parsed AI resume data:", parsedData);
         
       } catch (parseError) {
         console.error("Error parsing AI response:", parseError);
+        console.error("Raw response text:", response.content[0].text);
         return res.status(500).json({ error: "Failed to parse AI response" });
       }
 
