@@ -51,12 +51,12 @@ const CheckoutForm = ({ type }: { type: 'trial' | 'subscription' }) => {
         } else {
           toast({
             title: "Trial Started!",
-            description: "Your 7-day free trial has started. Payment method saved for future billing.",
+            description: "Your 7-day free trial has started. Redirecting to dashboard...",
           });
-          // Redirect to dashboard after success
+          // Redirect to dashboard immediately after success
           setTimeout(() => {
             window.location.href = "/dashboard?trial=started";
-          }, 2000);
+          }, 1500); // Reduced from 2000ms to 1500ms for faster redirect
         }
       } else {
         // For direct subscription, use confirmPayment

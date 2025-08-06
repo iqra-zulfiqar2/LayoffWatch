@@ -34,8 +34,19 @@ export default function Dashboard() {
     retry: false,
   });
 
-  // Redirect to home if not authenticated
+  // Check for trial success message and redirect to home if not authenticated
   useEffect(() => {
+    // Check if user just started trial
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('trial') === 'started') {
+      toast({
+        title: "Welcome to Layoff Proof Pro!",
+        description: "Your 7-day free trial is now active. Explore all premium features!",
+      });
+      // Clean up URL
+      window.history.replaceState({}, '', '/dashboard');
+    }
+
     if (!isLoading && !isAuthenticated) {
       toast({
         title: "Unauthorized",
@@ -43,7 +54,7 @@ export default function Dashboard() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/login";
       }, 500);
       return;
     }

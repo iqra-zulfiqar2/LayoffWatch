@@ -291,6 +291,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const setupIntent = await createSetupIntent(stripeCustomerId);
       console.log("Setup intent created successfully:", setupIntent.id);
       
+      // Update user trial status
+      const trialStartDate = new Date();
+      const trialEndDate = new Date(trialStartDate);
+      trialEndDate.setDate(trialEndDate.getDate() + 7); // 7 days from now
+      
+      await storage.updateUser(user.id, {
+        subscriptionPlan: 'pro',
+        subscriptionStatus: 'trialing',
+        trialStartDate,
+        trialEndDate,
+        updatedAt: new Date()
+      });
+      console.log("User trial status updated");
+      
       res.json({
         clientSecret: setupIntent.client_secret,
         customerId: stripeCustomerId,
